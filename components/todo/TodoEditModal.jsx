@@ -1,13 +1,20 @@
 // components/todo/TodoEditModal.js
-import { useEffect, useState } from 'react';
-import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from "react";
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function EditModal({ visible, onClose, onSave, todo }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState('normal');
-  const [status, setStatus] = useState('pending');
-  const [daysToComplete, setDaysToComplete] = useState('1');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("normal");
+  const [status, setStatus] = useState("pending");
+  const [daysToComplete, setDaysToComplete] = useState("1");
 
   useEffect(() => {
     if (todo) {
@@ -15,7 +22,7 @@ export default function EditModal({ visible, onClose, onSave, todo }) {
       setDescription(todo.description);
       setPriority(todo.priority);
       setStatus(todo.status);
-      
+
       // Calculate remaining days
       if (todo.deadline) {
         const now = new Date();
@@ -29,19 +36,20 @@ export default function EditModal({ visible, onClose, onSave, todo }) {
 
   const handleSave = () => {
     if (!title.trim()) return;
-    
+
     const deadline = new Date();
     deadline.setDate(deadline.getDate() + parseInt(daysToComplete));
-    
-    onSave({ 
-      ...todo, 
-      title, 
-      description, 
+
+    onSave({
+      ...todo,
+      title,
+      description,
       priority,
       status,
       deadline: deadline.toISOString(),
       updatedAt: new Date().toISOString(),
-      completedAt: status === 'complete' ? new Date().toISOString() : todo.completedAt
+      completedAt:
+        status === "complete" ? new Date().toISOString() : todo.completedAt,
     });
     onClose();
   };
@@ -56,14 +64,14 @@ export default function EditModal({ visible, onClose, onSave, todo }) {
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>টাস্ক সম্পাদনা করুন</Text>
-          
+
           <TextInput
             style={styles.input}
             placeholder="টাস্কের শিরোনাম"
             value={title}
             onChangeText={setTitle}
           />
-          
+
           <TextInput
             style={[styles.input, styles.multilineInput]}
             placeholder="বিস্তারিত বর্ণনা"
@@ -72,97 +80,131 @@ export default function EditModal({ visible, onClose, onSave, todo }) {
             value={description}
             onChangeText={setDescription}
           />
-          
-          <View style={styles.row}>
-            <View style={styles.halfWidth}>
-              <Text style={styles.label}>কত দিনে শেষ করবেন?</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="দিন"
-                keyboardType="numeric"
-                value={daysToComplete}
-                onChangeText={setDaysToComplete}
-              />
-            </View>
-            
-            <View style={styles.halfWidth}>
-              <Text style={styles.label}>প্রাধান্য:</Text>
-              <View style={styles.priorityOptions}>
-                <TouchableOpacity 
+
+          <View>
+            <Text style={styles.label}>কত দিনে শেষ করবেন?</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="দিন"
+              keyboardType="numeric"
+              value={daysToComplete}
+              onChangeText={setDaysToComplete}
+            />
+          </View>
+
+          <View style={{ marginBottom: 16 }}>
+            <Text style={styles.label}>প্রাধান্য:</Text>
+            <View style={styles.priorityOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.priorityButton,
+                  priority === "urgent" && styles.urgentButton,
+                ]}
+                onPress={() => setPriority("urgent")}
+              >
+                <Text
                   style={[
-                    styles.priorityButton,
-                    priority === 'urgent' && styles.urgentButton
+                    styles.priorityButtonText,
+                    priority === "urgent" && styles.priorityButtonTextSelect,
                   ]}
-                  onPress={() => setPriority('urgent')}
                 >
-                  <Text style={styles.priorityButtonText}>জরুরী</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
+                  জরুরী
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.priorityButton,
+                  priority === "important" && styles.importantButton,
+                ]}
+                onPress={() => setPriority("important")}
+              >
+                <Text
                   style={[
-                    styles.priorityButton,
-                    priority === 'important' && styles.importantButton
+                    styles.priorityButtonText,
+                    priority === "important" && styles.priorityButtonTextSelect,
                   ]}
-                  onPress={() => setPriority('important')}
                 >
-                  <Text style={styles.priorityButtonText}>গুরুত্বপূর্ণ</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
+                  গুরুত্বপূর্ণ
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.priorityButton,
+                  priority === "normal" && styles.normalButton,
+                ]}
+                onPress={() => setPriority("normal")}
+              >
+                <Text
                   style={[
-                    styles.priorityButton,
-                    priority === 'normal' && styles.normalButton
+                    styles.priorityButtonText,
+                    priority === "normal" && styles.priorityButtonTextSelect,
                   ]}
-                  onPress={() => setPriority('normal')}
                 >
-                  <Text style={styles.priorityButtonText}>সাধারণ</Text>
-                </TouchableOpacity>
-              </View>
+                  সাধারণ
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
-          
+
           <View style={styles.statusContainer}>
             <Text style={styles.label}>অবস্থা:</Text>
             <View style={styles.statusOptions}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
                   styles.statusButton,
-                  status === 'pending' && styles.pendingButton
+                  status === "pending" && styles.pendingButton,
                 ]}
-                onPress={() => setStatus('pending')}
+                onPress={() => setStatus("pending")}
               >
-                <Text style={styles.statusButtonText}>অপেক্ষমান</Text>
+                <Text
+                  style={[
+                    styles.statusButtonText,
+                    status === "pending" && styles.statusButtonTextSelect,
+                  ]}
+                >
+                  অপেক্ষমান
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
                   styles.statusButton,
-                  status === 'ongoing' && styles.ongoingButton
+                  status === "ongoing" && styles.ongoingButton,
                 ]}
-                onPress={() => setStatus('ongoing')}
+                onPress={() => setStatus("ongoing")}
               >
-                <Text style={styles.statusButtonText}>চলমান</Text>
+                <Text
+                  style={[
+                    styles.statusButtonText,
+                    status === "ongoing" && styles.statusButtonTextSelect,
+                  ]}
+                >
+                  চলমান
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
                   styles.statusButton,
-                  status === 'complete' && styles.completeButton
+                  status === "complete" && styles.completeButton,
                 ]}
-                onPress={() => setStatus('complete')}
+                onPress={() => setStatus("complete")}
               >
-                <Text style={styles.statusButtonText}>সম্পন্ন</Text>
+                <Text
+                  style={[
+                    styles.statusButtonText,
+                    status === "complete" && styles.statusButtonTextSelect,
+                  ]}
+                >
+                  সম্পন্ন
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
-          
+
           <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={styles.cancelButton}
-              onPress={onClose}
-            >
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.buttonText}>বাতিল</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={handleSave}
-            >
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.buttonText}>সংরক্ষণ</Text>
             </TouchableOpacity>
           </View>
@@ -173,51 +215,51 @@ export default function EditModal({ visible, onClose, onSave, todo }) {
 }
 
 const styles = StyleSheet.create({
-    modalContainer: {
+  modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    width: '90%',
-    backgroundColor: 'white',
+    width: "90%",
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 20,
   },
   modalTitle: {
-    fontFamily: 'bangla_bold',
+    fontFamily: "bangla_bold",
     fontSize: 18,
-    color: '#037764',
+    color: "#037764",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
-    fontFamily: 'bangla_regular',
+    fontFamily: "bangla_regular",
   },
   multilineInput: {
     height: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   halfWidth: {
-    width: '48%',
+    width: "48%",
   },
   label: {
-    fontFamily: 'bangla_medium',
+    fontFamily: "bangla_medium",
     marginBottom: 8,
   },
   priorityOptions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
   },
   priorityButton: {
@@ -225,54 +267,53 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
+    borderColor: "#ddd",
+    alignItems: "center",
   },
   urgentButton: {
-    backgroundColor: '#ff3b30',
-    borderColor: '#ff3b30',
+    backgroundColor: "#ff3b30",
+    borderColor: "#ff3b30",
   },
   importantButton: {
-    backgroundColor: '#ff9500',
-    borderColor: '#ff9500',
+    backgroundColor: "#ff9500",
+    borderColor: "#ff9500",
   },
   normalButton: {
-    backgroundColor: '#34c759',
-    borderColor: '#34c759',
+    backgroundColor: "#34c759",
+    borderColor: "#34c759",
   },
   priorityButtonText: {
-    fontFamily: 'bangla_medium',
+    fontFamily: "bangla_medium",
     fontSize: 12,
-    color: 'white',
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     gap: 12,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#037764',
+    backgroundColor: "#037764",
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    fontFamily: 'bangla_bold',
-    color: 'white',
+    fontFamily: "bangla_bold",
+    color: "white",
   },
   statusContainer: {
     marginBottom: 20,
   },
   statusOptions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
   },
   statusButton: {
@@ -280,24 +321,33 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
+    borderColor: "#ddd",
+    alignItems: "center",
   },
   pendingButton: {
-    backgroundColor: '#ff9500',
-    borderColor: '#ff9500',
+    backgroundColor: "#ff9500",
+    borderColor: "#ff9500",
   },
   ongoingButton: {
-    backgroundColor: '#007aff',
-    borderColor: '#007aff',
+    backgroundColor: "#007aff",
+    borderColor: "#007aff",
   },
   completeButton: {
-    backgroundColor: '#34c759',
-    borderColor: '#34c759',
+    backgroundColor: "#34c759",
+    borderColor: "#34c759",
   },
   statusButtonText: {
-    fontFamily: 'bangla_medium',
+    fontFamily: "bangla_medium",
     fontSize: 12,
-    color: 'white',
+  },
+  statusButtonTextSelect: {
+    fontFamily: "bangla_medium",
+    fontSize: 12,
+    color: "#ffffff",
+  },
+  priorityButtonTextSelect: {
+    fontFamily: "bangla_medium",
+    fontSize: 12,
+    color: "#ffffff",
   },
 });

@@ -41,6 +41,11 @@ export default function PrayerCalendar({ selectedDate, onDateChange }) {
       }}
       markedDates={markedDates}
       onDayPress={(day) => onDateChange(new Date(day.dateString))}
+      // শুধুমাত্র আজকের তারিখ এবং এর আগের তারিখগুলো সিলেক্টেবল হবে
+      maxDate={today}
+      // অথবা যদি শুধুমাত্র আজকের তারিখ সিলেক্টেবল করতে চান:
+      // disabledByDefault={true}
+      // enableSwipeMonths={false}
     />
   );
 }

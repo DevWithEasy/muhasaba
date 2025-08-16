@@ -63,9 +63,8 @@ export default function AskSalahCalculation() {
     loadPreferences();
   }, []);
 
-  const savePreference = async (key, value) => {
+  const savePreference = async () => {
     try {
-      await AsyncStorage.setItem(key, value.toString());
       // Define the file path
       const appDir = `${FileSystem.documentDirectory}app_dir`;
       const filePath = `${appDir}/user_data.json`;
@@ -87,15 +86,18 @@ export default function AskSalahCalculation() {
       }
 
       // Update the specific key with new value
-      userData[key] = value;
-
+      const updateData = {
+        ...userData,
+        claculation: {
+          method,
+          school,
+        },
+      };
       // Write the updated data back to file
       await FileSystem.writeAsStringAsync(
         filePath,
-        JSON.stringify(userData, null, 2)
+        JSON.stringify(updateData, null, 2)
       );
-
-      console.log(`Successfully saved ${key} with value ${value}`);
     } catch (error) {
       console.error("Error saving preference:", error);
       throw error;
@@ -104,12 +106,10 @@ export default function AskSalahCalculation() {
 
   const handleMethodChange = (value) => {
     setMethod(value);
-    savePreference("calculationMethod", value);
   };
 
   const handleSchoolChange = (value) => {
     setSchool(value);
-    savePreference("asrSchool", value);
   };
 
   const createSalahDataFile = async () => {
@@ -147,6 +147,7 @@ export default function AskSalahCalculation() {
   const handleContinue = async () => {
     try {
       setLoading(true);
+      await savePreference();
       await createSalahDataFile();
       await AsyncStorage.setItem("is-first-install", "1");
       router.push("/(tabs)");
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContainer: {
-    padding: 25,
+    padding: 15,
     paddingTop: 40,
     paddingBottom: 100,
   },
@@ -321,7 +322,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    elevation: 2,
+    elevation: 0.5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,

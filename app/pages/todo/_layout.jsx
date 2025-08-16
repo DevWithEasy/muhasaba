@@ -12,9 +12,20 @@ export default function TodoLayout() {
           fontFamily: "bangla_bold",
         },
         tabBarActiveTintColor: "#037764",
+        tabBarInactiveTintColor: "#8e8e93",
         tabBarLabelStyle: {
-          fontFamily: "bangla_bold",
           fontSize: 12,
+          marginBottom: 8,
+        },
+        tabBarStyle: {
+          height: 65,
+          paddingTop: 4,
+        },
+        tabBarItemStyle: {
+          paddingBottom: 4,
+        },
+        headerStyle: {
+          backgroundColor: "#f8fafc",
         },
       }}
     >
@@ -22,13 +33,17 @@ export default function TodoLayout() {
         name="index"
         options={{
           title: "কর্ম তালিকা",
-          tabBarLabel: ({ color }) => (
-            <Text style={{ fontFamily: "bangla_bold", color }}>
+          tabBarLabel: ({ color, focused }) => (
+            <Text style={{ fontFamily: "bangla_medium", color, fontSize: 12 }}>
               কর্ম তালিকা
             </Text>
           ),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="list" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "list" : "list-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -37,10 +52,16 @@ export default function TodoLayout() {
         options={{
           title: "চলমান কাজ",
           tabBarLabel: ({ color }) => (
-            <Text style={{ fontFamily: "bangla_bold", color }}>চলমান কাজ</Text>
+            <Text style={{ fontFamily: "bangla_medium", color, fontSize: 12 }}>
+              চলমান কাজ
+            </Text>
           ),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="hourglass" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "hourglass" : "hourglass-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -49,12 +70,16 @@ export default function TodoLayout() {
         options={{
           title: "সম্পন্ন কাজ",
           tabBarLabel: ({ color }) => (
-            <Text style={{ fontFamily: "bangla_bold", color }}>
+            <Text style={{ fontFamily: "bangla_medium", color, fontSize: 12 }}>
               সম্পন্ন কাজ
             </Text>
           ),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkmark-done" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "checkmark-circle" : "checkmark-circle-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

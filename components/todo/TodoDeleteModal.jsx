@@ -12,7 +12,7 @@ export default function TodoDeleteModal({ visible, onCancel, onConfirm, itemName
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
-          <Ionicons name="trash-bin-outline" size={48} color="#ff3b30" style={styles.icon} />
+          <Ionicons name="trash-bin-outline" size={40} color="#ff3b30" style={styles.icon} />
           <Text style={styles.modalTitle}>ডিলিট করুন</Text>
           <Text style={styles.modalText}>আপনি কি নিশ্চিত {itemName} ডিলিট করতে চান?</Text>
           
@@ -56,14 +56,13 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: 'bangla_bold',
-    fontSize: 20,
+    fontSize: 18,
     color: '#333',
     marginBottom: 8,
     textAlign: 'center',
   },
   modalText: {
     fontFamily: 'bangla_regular',
-    fontSize: 16,
     color: '#666',
     marginBottom: 24,
     textAlign: 'center',
@@ -89,8 +88,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   buttonText: {
-    fontFamily: 'bangla_medium',
-    fontSize: 16,
+    fontFamily: 'bangla_bold',
     color: 'white',
   },
 });

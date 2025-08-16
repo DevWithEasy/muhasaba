@@ -1,6 +1,6 @@
 // components/todo/CountdownTimer.js
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function CountdownTimer({ deadline }) {
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
@@ -52,7 +52,7 @@ export default function CountdownTimer({ deadline }) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 1,
     borderRadius: 12,
     backgroundColor: '#e6f7ff',
   },

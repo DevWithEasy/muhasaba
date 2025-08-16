@@ -2,18 +2,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import CountdownTimer from "../../../components/todo/TodoCountdownTimer";
 import TodoDeleteModal from "../../../components/todo/TodoDeleteModal";
 import EditModal from "../../../components/todo/TodoEditModal";
 import TodoModal from "../../../components/todo/TodoModal";
+import EmptyState from "../../../components/todo/EmptyState";
 
 const TODO_FILE = `${FileSystem.documentDirectory}app_dir/todo_data.json`;
 
@@ -21,9 +23,10 @@ export default function TodoIndex() {
   const [todos, setTodos] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedTodo, setSelectedTodo] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedTodo, setSelectedTodo] = useState(null);
   const [todoToDelete, setTodoToDelete] = useState(null);
+  const swipeableRefs = useRef({});
 
   useFocusEffect(
     useCallback(() => {
@@ -127,6 +130,55 @@ export default function TodoIndex() {
     setShowEditModal(true);
   };
 
+  const closeSwipeable = (id) => {
+    if (swipeableRefs.current[id]) {
+      swipeableRefs.current[id].close();
+    }
+  };
+
+  const renderRightActions = (item) => {
+    return (
+      <View style={styles.rightActions}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.editButton]}
+          onPress={() => {
+            closeSwipeable(item.id);
+            handleEdit(item);
+          }}
+        >
+          <Ionicons name="create" size={24} color="#037764" />
+          <Text
+            style={{
+              fontFamily: "bangla_bold",
+              fontSize: 12,
+              color: "#037764",
+            }}
+          >
+            আপডেট
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.deleteButton]}
+          onPress={() => {
+            closeSwipeable(item.id);
+            deleteTodo(item.id);
+          }}
+        >
+          <Ionicons name="trash" size={24} color="#ff3b30" />
+          <Text
+            style={{
+              fontFamily: "bangla_bold",
+              fontSize: 12,
+              color: "#ff3b30",
+            }}
+          >
+            ডিলেট
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "urgent":
@@ -144,44 +196,46 @@ export default function TodoIndex() {
         data={todos.filter((todo) => todo.status === "pending")}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.todoItem}>
-            <View style={styles.todoContent}>
-              <Text style={styles.todoTitle}>{item.title}</Text>
-              <Text style={styles.todoDesc}>{item.description}</Text>
+          <Swipeable
+            ref={(ref) => (swipeableRefs.current[item.id] = ref)}
+            renderRightActions={() => renderRightActions(item)}
+            rightThreshold={40}
+            overshootRight={false}
+          >
+            <View style={styles.todoItem}>
+              <View style={styles.todoContent}>
+                <Text style={styles.todoTitle}>{item.title}</Text>
+                <Text style={styles.todoDesc}>{item.description}</Text>
 
-              <View style={styles.metaContainer}>
-                <View
-                  style={[
-                    styles.priorityBadge,
-                    { backgroundColor: getPriorityColor(item.priority) },
-                  ]}
-                >
-                  <Text style={styles.priorityText}>
-                    {item.priority === "urgent"
-                      ? "জরুরী"
-                      : item.priority === "important"
-                      ? "গুরুত্বপূর্ণ"
-                      : "সাধারণ"}
-                  </Text>
+                <View style={styles.metaContainer}>
+                  <View
+                    style={[
+                      styles.priorityBadge,
+                      { backgroundColor: getPriorityColor(item.priority) },
+                    ]}
+                  >
+                    <Text style={styles.priorityText}>
+                      {item.priority === "urgent"
+                        ? "জরুরী"
+                        : item.priority === "important"
+                        ? "গুরুত্বপূর্ণ"
+                        : "সাধারণ"}
+                    </Text>
+                  </View>
+
+                  <CountdownTimer deadline={item.deadline} />
                 </View>
 
-                <CountdownTimer deadline={item.deadline} />
+                <Text style={styles.dateText}>
+                  তৈরি: {new Date(item.createdAt).toLocaleDateString("bn-BD")}
+                </Text>
               </View>
-
-              <Text style={styles.dateText}>
-                তৈরি: {new Date(item.createdAt).toLocaleDateString("bn-BD")}
-              </Text>
             </View>
-            <View style={styles.todoActions}>
-              <TouchableOpacity onPress={() => handleEdit(item)}>
-                <Ionicons name="create-outline" size={24} color="#037764" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteTodo(item.id)}>
-                <Ionicons name="trash-outline" size={24} color="#ff3b30" />
-              </TouchableOpacity>
-            </View>
-          </View>
+          </Swipeable>
         )}
+        ListEmptyComponent={
+          <EmptyState icon="receipt-outline" title="কোন কাজ যুক্ত করা হয়নি" subTitle='নতুন কাজ যোগ করতে &apos;+&apos; বাটনে ক্লিক করুন'/>
+        }
       />
 
       <TouchableOpacity
@@ -203,11 +257,12 @@ export default function TodoIndex() {
         onSave={updateTodo}
         todo={selectedTodo}
       />
-       <TodoDeleteModal
+
+      <TodoDeleteModal
         visible={showDeleteModal}
         onCancel={() => setShowDeleteModal(false)}
         onConfirm={handleDeleteConfirm}
-        itemName={todoToDelete?.title || ''}
+        itemName={todoToDelete?.title || ""}
       />
     </View>
   );
@@ -216,7 +271,7 @@ export default function TodoIndex() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 10,
     backgroundColor: "#f8fafc",
   },
   todoItem: {
@@ -231,20 +286,21 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 1,
+    borderWidth: 0.5,
+    borderColor: "#ddddddff",
   },
   todoContent: {
     flex: 1,
   },
   todoTitle: {
     fontFamily: "bangla_bold",
-    fontSize: 16,
     color: "#333",
     marginBottom: 4,
   },
   todoDesc: {
     fontFamily: "bangla_regular",
-    fontSize: 14,
+    fontSize: 12,
     color: "#666",
     marginBottom: 8,
   },
@@ -256,7 +312,7 @@ const styles = StyleSheet.create({
   },
   priorityBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 1,
     borderRadius: 12,
   },
   priorityText: {
@@ -269,17 +325,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#888",
   },
-  todoActions: {
+  rightActions: {
     flexDirection: "row",
-    gap: 16,
+    width: 120,
+    marginBottom: 12,
+  },
+  actionButton: {
+    width: 60,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  editButton: {
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+  },
+  deleteButton: {
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
   },
   addButton: {
     position: "absolute",
     bottom: 24,
     right: 24,
     backgroundColor: "#037764",
-    width: 48,
-    height: 48,
+    width: 56,
+    height: 56,
     borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
@@ -288,5 +358,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 50,
+  },
+  emptyText: {
+    fontFamily: "bangla_medium",
+    fontSize: 16,
+    color: "#666",
   },
 });

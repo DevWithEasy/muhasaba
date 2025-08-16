@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import PrayerCalendar from "../../components/prayer/PrayerCalendar";
 import convertToBanglaNumbers from "../../utils/convertToBanglaNumber";
+import { Ionicons } from "@expo/vector-icons";
 
 const formatDate = (date) => {
   const d = new Date(date);
@@ -190,9 +191,14 @@ export default function HadithRead() {
                 ]}
                 onPress={toggleHadithRead}
               >
+                <Ionicons
+                  name={hadith.read.status ? "checkmark-circle" : "information-circle"}
+                  size={20}
+                  color={hadith.read.status ? "#037764" : "#e53e3e"}
+                />
                 <Text
                   style={
-                    hadith.read.status ? styles.switchText : styles.switchTextNo
+                    hadith.read.status ? styles.activeText : styles.inActiveText
                   }
                 >
                   {hadith.read.status ? "হ্যাঁ করেছি" : "না করিনি"}
@@ -283,10 +289,13 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "bangla_medium",
     flex: 1,
-    color: "#2d3748"},
+    color: "#2d3748",
+  },
   switch: {
-    paddingVertical: 2,
-    paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderRadius: 20,
     borderWidth: 1,
   },
@@ -298,14 +307,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff5f5",
     borderColor: "#e53e3e",
   },
-  switchText: {
-    fontFamily: "bangla_bold",
+  activeText: {
+    fontFamily: "bangla_medium",
     fontSize: 12,
+    marginLeft: 5,
     color: "#037764",
   },
-  switchTextNo: {
-    fontFamily: "bangla_bold",
+  inActiveText: {
+    fontFamily: "bangla_medium",
     fontSize: 12,
+    marginLeft: 5,
     color: "#e53e3e",
   },
   countContainer: {

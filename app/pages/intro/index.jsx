@@ -26,7 +26,7 @@ export default function Index() {
         
         <TouchableOpacity 
           style={[styles.button, styles.secondaryButton]}
-          onPress={() => router.push('/pages/intro/ask_restore_data')}
+          onPress={() => router.push('/pages/backup/restore')}
         >
           <MaterialIcons name="restore" size={24} color="#037764" />
           <Text style={[styles.buttonText, {color: '#037764'}]}>পুরাতন ডাটা রিস্টোর করুন</Text>

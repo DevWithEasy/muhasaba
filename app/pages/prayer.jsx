@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   prayerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
+    marginTop: 15,
     marginBottom: 15,
   },
   prayerDetails: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   },
   detailsTitle: {
     fontFamily: "bangla_bold",
-    fontSize: 18,
+    fontSize: 16,
     color: "#037764",
     marginBottom: 15,
     textAlign: "center",

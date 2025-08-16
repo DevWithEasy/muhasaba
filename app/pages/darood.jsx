@@ -200,11 +200,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   countText: {
-    fontFamily: 'bangla_regular',
-    fontSize: 14,
+    fontFamily: 'bangla_bold',
+    fontSize: 12,
   },
   countPercentage: {
-    fontFamily: 'bangla_medium',
+    fontFamily: 'bangla_bold',
     fontSize: 12,
     color: '#037764',
     marginTop: 3,

@@ -244,120 +244,119 @@ export default function PrayerTimeView() {
   }
 
   return (
-    <ScrollView style={{ backgroundColor: "#ffffff" }}>
-      <View style={{ padding: 10, flex: 1 }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View style={{ width: "60%" }}>
-            {currentPrayer && (
-              <>
-                <Text style={styles.currentPrayerText}>
-                  {getBengaliPrayerName(currentPrayer.name)}
-                </Text>
-                <Text style={styles.timeRemainingText}>
-                  শেষ হতে বাকি: {formatTimeRemaining(timeRemaining)}
-                </Text>
-              </>
-            )}
-          </View>
-          <View
-            style={{
-              width: "40%",
-              alignItems: "flex-end",
-              justifyContent: "center",
-            }}
-          >
-            <Text style={styles.sunTimeText}>সর্বশেষ আপডেট</Text>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: "bangla_regular",
-                color: "#666",
-              }}
-            >
-              {formatLastUpdated(lastUpdated)}
-            </Text>
-            {!isOnline && (
-              <Text style={[styles.sunTimeText, { color: "red" }]}>
-                (অফলাইন মোড)
+    <View style={styles.container}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <View style={{ width: "60%" }}>
+          {currentPrayer && (
+            <>
+              <Text style={styles.currentPrayerText}>
+                {getBengaliPrayerName(currentPrayer.name)}
               </Text>
-            )}
-          </View>
+              <Text style={styles.timeRemainingText}>
+                শেষ হতে বাকি: {formatTimeRemaining(timeRemaining)}
+              </Text>
+            </>
+          )}
         </View>
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 10,
-                fontFamily: "bangla_regular",
-                color: "#666",
-                textAlign: "center",
-              }}
-            >
-              {getAddressString(location.address)}
-            </Text>
         <View
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            ...styles.sunTimeContainer,
+            width: "40%",
+            alignItems: "flex-end",
+            justifyContent: "center",
           }}
         >
-          <View style={{ width: "50%" }}>
-            <Text style={styles.sunTimeText}>
-              সূর্যোদয়: {prayerTimes.Sunrise}
+          <Text style={styles.sunTimeText}>সর্বশেষ আপডেট</Text>
+          <Text
+            style={{
+              fontSize: 12,
+              fontFamily: "bangla_regular",
+              color: "#666",
+            }}
+          >
+            {formatLastUpdated(lastUpdated)}
+          </Text>
+          {!isOnline && (
+            <Text style={[styles.sunTimeText, { color: "red" }]}>
+              (অফলাইন মোড)
             </Text>
-            <Text style={styles.sunTimeText}>
-              সূর্যাস্ত: {prayerTimes.Sunset}
-            </Text>
-          </View>
-          <View style={{ width: "50%" }}>
-            <Text style={styles.sunTimeText}>সেহেরি: {prayerTimes.Fajr}</Text>
-            <Text style={styles.sunTimeText}>ইফতার: {prayerTimes.Maghrib}</Text>
-          </View>
+          )}
         </View>
+      </View>
+      <Text
+        numberOfLines={1}
+        style={{
+          fontSize: 10,
+          fontFamily: "bangla_regular",
+          color: "#666",
+          textAlign: "center",
+        }}
+      >
+        {getAddressString(location.address)}
+      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          ...styles.sunTimeContainer,
+        }}
+      >
+        <View style={{ width: "50%" }}>
+          <Text style={styles.sunTimeText}>
+            সূর্যোদয়: {prayerTimes.Sunrise}
+          </Text>
+          <Text style={styles.sunTimeText}>
+            সূর্যাস্ত: {prayerTimes.Sunset}
+          </Text>
+        </View>
+        <View style={{ width: "50%" }}>
+          <Text style={styles.sunTimeText}>সেহেরি: {prayerTimes.Fajr}</Text>
+          <Text style={styles.sunTimeText}>ইফতার: {prayerTimes.Maghrib}</Text>
+        </View>
+      </View>
 
-        <View style={styles.prayerTimesContainer}>
-          {["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].map((prayer) => (
-            <View
-              key={prayer}
+      <View style={styles.prayerTimesContainer}>
+        {["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].map((prayer) => (
+          <View
+            key={prayer}
+            style={[
+              styles.prayerTimeItem,
+              currentPrayer?.name === prayer && styles.activePrayer,
+            ]}
+          >
+            <View />
+            <Text
               style={[
-                styles.prayerTimeItem,
-                currentPrayer?.name === prayer && styles.activePrayer,
+                styles.prayerNameTime,
+                currentPrayer?.name === prayer && styles.activePrayerNameTime,
               ]}
             >
-              <View />
-              <Text
-                style={[
-                  styles.prayerNameTime,
-                  currentPrayer?.name === prayer && styles.activePrayerNameTime,
-                ]}
-              >
-                {getBengaliPrayerName(prayer)}
-              </Text>
-              <Text
-                style={[
-                  styles.prayerNameTime,
-                  currentPrayer?.name === prayer && styles.activePrayerNameTime,
-                ]}
-              >
-                {prayerTimes[prayer]}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        {!isOnline && (
-          <Text
-            style={[styles.sunTimeText, { textAlign: "center", marginTop: 10 }]}
-          >
-            ইন্টারনেট সংযোগ নেই। সর্বশেষ সংরক্ষিত সময় দেখানো হচ্ছে।
-          </Text>
-        )}
+              {getBengaliPrayerName(prayer)}
+            </Text>
+            <Text
+              style={[
+                styles.prayerNameTime,
+                currentPrayer?.name === prayer && styles.activePrayerNameTime,
+              ]}
+            >
+              {prayerTimes[prayer]}
+            </Text>
+          </View>
+        ))}
       </View>
-    </ScrollView>
+
+      {!isOnline && (
+        <Text
+          style={[styles.sunTimeText, { textAlign: "center", marginTop: 10 }]}
+        >
+          ইন্টারনেট সংযোগ নেই। সর্বশেষ সংরক্ষিত সময় দেখানো হচ্ছে।
+        </Text>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: { padding: 10, backgroundColor: "#ffffff", borderRadius: 8 },
   currentPrayerText: {
     fontSize: 18,
     fontFamily: "bangla_bold",

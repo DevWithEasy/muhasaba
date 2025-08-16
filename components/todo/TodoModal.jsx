@@ -1,25 +1,32 @@
 // components/todo/TodoModal.js
-import { useState } from 'react';
-import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from "react";
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function TodoModal({ visible, onClose, onSave }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState('normal');
-  const [daysToComplete, setDaysToComplete] = useState('1');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("normal");
+  const [daysToComplete, setDaysToComplete] = useState("1");
 
   const handleSave = () => {
     if (!title.trim()) return;
-    onSave({ 
-      title, 
-      description, 
+    onSave({
+      title,
+      description,
       priority,
-      daysToComplete
+      daysToComplete,
     });
-    setTitle('');
-    setDescription('');
-    setPriority('normal');
-    setDaysToComplete('1');
+    setTitle("");
+    setDescription("");
+    setPriority("normal");
+    setDaysToComplete("1");
     onClose();
   };
 
@@ -33,14 +40,14 @@ export default function TodoModal({ visible, onClose, onSave }) {
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>নতুন টাস্ক যোগ করুন</Text>
-          
+
           <TextInput
             style={styles.input}
             placeholder="টাস্কের শিরোনাম"
             value={title}
             onChangeText={setTitle}
           />
-          
+
           <TextInput
             style={[styles.input, styles.multilineInput]}
             placeholder="বিস্তারিত বর্ণনা"
@@ -49,64 +56,58 @@ export default function TodoModal({ visible, onClose, onSave }) {
             value={description}
             onChangeText={setDescription}
           />
-          
-          <View style={styles.row}>
-            <View style={styles.halfWidth}>
-              <Text style={styles.label}>কত দিনে শেষ করবেন?</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="দিন"
-                keyboardType="numeric"
-                value={daysToComplete}
-                onChangeText={setDaysToComplete}
-              />
-            </View>
-            
-            <View style={styles.halfWidth}>
-              <Text style={styles.label}>প্রাধান্য:</Text>
-              <View style={styles.priorityOptions}>
-                <TouchableOpacity 
-                  style={[
-                    styles.priorityButton,
-                    priority === 'urgent' && styles.urgentButton
-                  ]}
-                  onPress={() => setPriority('urgent')}
-                >
-                  <Text style={styles.priorityButtonText}>জরুরী</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[
-                    styles.priorityButton,
-                    priority === 'important' && styles.importantButton
-                  ]}
-                  onPress={() => setPriority('important')}
-                >
-                  <Text style={styles.priorityButtonText}>গুরুত্বপূর্ণ</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[
-                    styles.priorityButton,
-                    priority === 'normal' && styles.normalButton
-                  ]}
-                  onPress={() => setPriority('normal')}
-                >
-                  <Text style={styles.priorityButtonText}>সাধারণ</Text>
-                </TouchableOpacity>
-              </View>
+
+          <View>
+            <Text style={styles.label}>কত দিনে শেষ করবেন?</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="দিন"
+              keyboardType="numeric"
+              value={daysToComplete}
+              onChangeText={setDaysToComplete}
+            />
+          </View>
+
+          <View style={{marginBottom : 16}}>
+            <Text style={styles.label}>প্রাধান্য:</Text>
+            <View style={styles.priorityOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.priorityButton,
+                  priority === "urgent" && styles.urgentButton,
+                ]}
+                onPress={() => setPriority("urgent")}
+              >
+                <Text style={[styles.priorityButtonText,
+                  priority === "urgent" && styles.priorityButtonTextSelect]}>জরুরী</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.priorityButton,
+                  priority === "important" && styles.importantButton,
+                ]}
+                onPress={() => setPriority("important")}
+              >
+                <Text style={[styles.priorityButtonText,
+                  priority === "important" && styles.priorityButtonTextSelect]}>গুরুত্বপূর্ণ</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.priorityButton,
+                  priority === "normal" && styles.normalButton,
+                ]}
+                onPress={() => setPriority("normal")}
+              >
+                <Text style={[styles.priorityButtonText,
+                  priority === "normal" && styles.priorityButtonTextSelect]}>সাধারণ</Text>
+              </TouchableOpacity>
             </View>
           </View>
-          
           <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={styles.cancelButton}
-              onPress={onClose}
-            >
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.buttonText}>বাতিল</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={handleSave}
-            >
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.buttonText}>সংরক্ষণ</Text>
             </TouchableOpacity>
           </View>
@@ -119,49 +120,49 @@ export default function TodoModal({ visible, onClose, onSave }) {
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    width: '90%',
-    backgroundColor: 'white',
+    width: "90%",
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 20,
   },
   modalTitle: {
-    fontFamily: 'bangla_bold',
+    fontFamily: "bangla_bold",
     fontSize: 18,
-    color: '#037764',
+    color: "#037764",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
-    fontFamily: 'bangla_regular',
+    fontFamily: "bangla_regular",
   },
   multilineInput: {
     height: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   halfWidth: {
-    width: '48%',
+    width: "48%",
   },
   label: {
-    fontFamily: 'bangla_medium',
+    fontFamily: "bangla_medium",
     marginBottom: 8,
   },
   priorityOptions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
   },
   priorityButton: {
@@ -169,47 +170,51 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
+    borderColor: "#ddd",
+    alignItems: "center",
   },
   urgentButton: {
-    backgroundColor: '#ff3b30',
-    borderColor: '#ff3b30',
+    backgroundColor: "#ff3b30",
+    borderColor: "#ff3b30",
   },
   importantButton: {
-    backgroundColor: '#ff9500',
-    borderColor: '#ff9500',
+    backgroundColor: "#ff9500",
+    borderColor: "#ff9500",
   },
   normalButton: {
-    backgroundColor: '#34c759',
-    borderColor: '#34c759',
+    backgroundColor: "#34c759",
+    borderColor: "#34c759",
   },
   priorityButtonText: {
-    fontFamily: 'bangla_medium',
+    fontFamily: "bangla_medium",
     fontSize: 12,
-    color: 'white',
+  },
+  priorityButtonTextSelect: {
+    fontFamily: "bangla_medium",
+    fontSize: 12,
+    color : '#ffffff'
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     gap: 12,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#037764',
+    backgroundColor: "#037764",
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    fontFamily: 'bangla_bold',
-    color: 'white',
+    fontFamily: "bangla_bold",
+    color: "white",
   },
 });

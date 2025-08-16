@@ -13,7 +13,7 @@ export default function TahajjudPrayerSwitch({ isActive, onPress }) {
         paddingLeft: 5,
         borderTopWidth: 1,
         marginTop: 5,
-        paddingTop: 10,
+        paddingTop: 15,
       }}
     >
       <Text style={{ fontFamily: "bangla_regular", flex: 1 }}>

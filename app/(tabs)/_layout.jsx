@@ -7,39 +7,79 @@ export default function AppLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerTitleAlign : 'center',
-        headerTitleStyle : {
-            fontFamily : 'bangla_bold',
-            // color : '#037764ff'
-        },
-        tabBarActiveTintColor: "#037764ff",
-        tabBarLabelStyle: {
+        headerTitleAlign: "center",
+        headerTitleStyle: {
           fontFamily: "bangla_bold",
+        },
+        headerStyle: {
+          backgroundColor: "#f8fafc",
+        },
+        tabBarActiveTintColor: "#037764",
+        tabBarInactiveTintColor: "#8e8e93",
+        tabBarLabelStyle: {
           fontSize: 12,
+          marginBottom: 8,
+        },
+        tabBarStyle: {
+          height: 65,
+          paddingTop: 4,
+        },
+        tabBarItemStyle: {
+          paddingBottom: 4,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title : 'মুহাসাবা',
+          title: "মুহাসাবা",
           tabBarLabel: ({ color }) => (
-            <Text style={{ fontFamily: "bangla_bold", color }}>মুহাসাবা</Text>
+            <Text style={{ fontFamily: "bangla_medium", color, fontSize: 12 }}>
+              মুহাসাবা
+            </Text>
           ),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? "book" : "book-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="activity"
         options={{
-          title : "আমার দৈনন্দিন কর্ম সমূহ",
+          title: "আমার দৈনন্দিন কর্ম সমূহ",
           tabBarLabel: ({ color }) => (
-            <Text style={{ fontFamily: "bangla_bold", color }}>কর্ম সমূহ</Text>
+            <Text style={{ fontFamily: "bangla_medium", color, fontSize: 12 }}>
+              কর্ম সমূহ
+            </Text>
           ),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? "time" : "time-outline"}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="user"
+        options={{
+          title: "প্রোফাইল",
+          tabBarLabel: ({ color }) => (
+            <Text style={{ fontFamily: "bangla_medium", color, fontSize: 12 }}>
+              প্রোফাইল
+            </Text>
+          ),
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? "person-circle" : "person-circle-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

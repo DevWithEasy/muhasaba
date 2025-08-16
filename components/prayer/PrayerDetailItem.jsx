@@ -61,7 +61,6 @@ const styles = {
   },
   detailText: {
     fontFamily: 'bangla_medium',
-    fontSize: 16,
     color: '#334155',
   },
   editButton: {
@@ -69,7 +68,7 @@ const styles = {
     marginRight: 10,
   },
   jamaatButton: {
-    paddingVertical: 6,
+    paddingVertical: 2,
     paddingHorizontal: 12,
     borderRadius: 15,
     borderWidth: 1,
@@ -80,8 +79,8 @@ const styles = {
     borderColor: '#037764',
   },
   jamaatText: {
-    fontFamily: 'bangla_regular',
-    fontSize: 14,
+    fontFamily: 'bangla_medium',
+    fontSize: 12,
     color: '#64748b',
   },
   jamaatActiveText: {
