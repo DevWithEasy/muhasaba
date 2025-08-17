@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: 'bangla_medium',
-    fontSize: 18,
+    fontSize: 16,
     color: 'white',
     marginRight: 10,
   },

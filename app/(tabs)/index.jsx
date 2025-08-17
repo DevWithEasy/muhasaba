@@ -12,7 +12,6 @@ export default function Index() {
   const handleClearAllData = async () => {
     setIsClearing(true);
     try {
-      // Show confirmation dialog
       Alert.alert(
         "Confirm Reset",
         "Are you sure you want to clear all app data? This cannot be undone.",
@@ -37,8 +36,7 @@ export default function Index() {
                 if (dirInfo.exists) {
                   await FileSystem.deleteAsync(appDir, { idempotent: true });
                 }
-
-                Alert.alert("Success", "All app data has been cleared");
+                router.push('/')
               } catch (error) {
                 console.error("Error clearing data:", error);
                 Alert.alert("Error", "Failed to clear all data");

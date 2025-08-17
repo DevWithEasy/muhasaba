@@ -59,6 +59,10 @@ export default function RootLayout() {
           <Stack.Screen name="pages/intro/ask_prayer_year" options={{ headerShown: false }} />
           <Stack.Screen name="pages/intro/ask_location" options={{ headerShown: false }} />
           <Stack.Screen name="pages/intro/ask_salah_calculation" options={{ headerShown: false }} />
+          <Stack.Screen name="pages/intro/ask_notification" options={{ headerShown: false }} />
+
+          <Stack.Screen name="pages/backup/index" options={{title: 'ব্যাকআপ ডাটা', headerBackTitle: 'পিছনে'}} />
+          <Stack.Screen name="pages/backup/restore" options={{title: 'রিস্টোর ব্যাকআপ ডাটা', headerBackTitle: 'পিছনে'}} />
 
           {/* Main Tabs */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

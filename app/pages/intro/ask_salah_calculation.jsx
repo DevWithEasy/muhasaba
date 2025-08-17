@@ -46,21 +46,28 @@ export default function AskSalahCalculation() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadPreferences = async () => {
+    setLoading(true);
+    const loadUserData = async () => {
       try {
-        const savedMethod = await AsyncStorage.getItem("calculationMethod");
-        const savedSchool = await AsyncStorage.getItem("asrSchool");
+        const appDir = `${FileSystem.documentDirectory}app_dir`;
+        const fileUri = `${appDir}/user_data.json`;
+        const fileInfo = await FileSystem.getInfoAsync(fileUri);
 
-        if (savedMethod !== null) setMethod(parseInt(savedMethod));
-        if (savedSchool !== null) setSchool(parseInt(savedSchool));
-      } catch (error) {
-        console.error("Error loading preferences:", error);
-      } finally {
+        if (fileInfo.exists) {
+          const fileContent = await FileSystem.readAsStringAsync(fileUri);
+          const userData = JSON.parse(fileContent);
+          if (userData.location) {
+            setMethod(userData?.claculation?.method ? userData.claculation.method : 1);
+            setSchool(userData?.claculation?.school ? userData.claculation.school : 1);
+          }
+        }
         setLoading(false);
+      } catch (error) {
+        console.error("Error loading user data:", error);
       }
     };
 
-    loadPreferences();
+    loadUserData();
   }, []);
 
   const savePreference = async () => {
@@ -150,7 +157,7 @@ export default function AskSalahCalculation() {
       await savePreference();
       await createSalahDataFile();
       await AsyncStorage.setItem("is-first-install", "1");
-      router.push("/(tabs)");
+      router.push("/pages/intro/ask_notification");
     } catch (error) {
       Alert.alert(
         "ত্রুটি",

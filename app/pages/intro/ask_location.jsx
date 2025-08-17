@@ -1,25 +1,25 @@
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import * as FileSystem from "expo-file-system";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
 } from "react-native";
 import getAddressString from "../../../utils/getAddressString";
 
 export default function AskLocation() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [continueLoading, setContinueLoading] = useState(false);
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState({
     city: "",
@@ -30,8 +30,34 @@ export default function AskLocation() {
   });
   const [permissionDenied, setPermissionDenied] = useState(false);
 
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const appDir = `${FileSystem.documentDirectory}app_dir`;
+        const fileUri = `${appDir}/user_data.json`;
+        const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+        if (fileInfo.exists) {
+          const fileContent = await FileSystem.readAsStringAsync(fileUri);
+          const userData = JSON.parse(fileContent);
+          if(userData.location){
+            setLocation({
+              latitude : userData.location.latitude,
+              longitude : userData.location.longitude
+            })
+            setAddress(userData.location.address)
+          }
+          
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      }
+    };
+    loadUserData()
+  });
+
   const getLocationPermission = async () => {
-    setLoading(true);
+    setLocationLoading(true);
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
 
@@ -46,7 +72,10 @@ export default function AskLocation() {
       }
 
       let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation);
+      setLocation({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+      });
 
       let addressResponse = await Location.reverseGeocodeAsync({
         latitude: currentLocation.coords.latitude,
@@ -82,7 +111,7 @@ export default function AskLocation() {
         "অবস্থান পাওয়া যায়নি। দয়া করে আবার চেষ্টা করুন।"
       );
     } finally {
-      setLoading(false);
+      setLocationLoading(false);
     }
   };
 
@@ -90,52 +119,50 @@ export default function AskLocation() {
     try {
       const appDir = `${FileSystem.documentDirectory}app_dir`;
       const filePath = `${appDir}/user_data.json`;
-      // Create directory if it doesn't exist
+
       const dirInfo = await FileSystem.getInfoAsync(appDir);
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(appDir, { intermediates: true });
       }
 
-      // Check if file exists
       const fileInfo = await FileSystem.getInfoAsync(filePath);
       let userData = {};
 
-      // If file exists, read current data
       if (fileInfo.exists) {
         const fileContent = await FileSystem.readAsStringAsync(filePath);
         userData = JSON.parse(fileContent);
       }
-      console.log(userData)
-      //save json after update
+
       await FileSystem.writeAsStringAsync(
         filePath,
-        JSON.stringify({ ...userData, loaction: locationData }, null, 2)
+        JSON.stringify({ ...userData, location: locationData }, null, 2)
       );
-      await AsyncStorage.setItem("userLocation", JSON.stringify(locationData));
     } catch (error) {
       console.error("Error saving location:", error);
+      throw error;
     }
   };
 
   const handleContinue = async () => {
-    if (location) {
-      try {
-        setLoading(true);
-        router.push("/pages/intro/ask_salah_calculation");
-      } catch (error) {
-        Alert.alert(
-          "ত্রুটি",
-          "অ্যাপ ডেটা ইনিশিয়ালাইজ করতে ব্যর্থ হয়েছে। দয়া করে আবার চেষ্টা করুন।"
-        );
-        console.error("Initialization error:", error);
-      } finally {
-        setLoading(false);
-      }
-    } else {
+    if (!location) {
       Alert.alert(
         "অবস্থান প্রয়োজন",
         "চালিয়ে যেতে দয়া করে অবস্থান চালু করুন"
       );
+      return;
+    }
+
+    setContinueLoading(true);
+    try {
+      router.push("/pages/intro/ask_salah_calculation");
+    } catch (error) {
+      console.error("Navigation error:", error);
+      Alert.alert(
+        "ত্রুটি",
+        "পরবর্তী পৃষ্ঠায় যেতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।"
+      );
+    } finally {
+      setContinueLoading(false);
     }
   };
 
@@ -144,88 +171,88 @@ export default function AskLocation() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <View style={styles.mainContent}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <View style={styles.iconContainer}>
-            <MaterialIcons name="location-on" size={80} color="#037764" />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <View style={styles.iconCircle}>
+            <MaterialIcons name="location-on" size={40} color="white" />
           </View>
+          <Text style={styles.title}>অবস্থান সেটিংস</Text>
+          <Text style={styles.subtitle}>
+            সঠিক নামাজের সময় জানতে আপনার অবস্থান নির্ধারণ করুন
+          </Text>
+        </View>
 
-          <Text style={styles.title}>অবস্থান অনুমতি</Text>
-
-          <View style={styles.infoCard}>
-            <Text style={styles.infoText}>
-              আপনার নামাজের সময় সঠিকভাবে দেখানোর জন্য, আমাদের আপনার বর্তমান
-              অবস্থান জানতে হবে।
-            </Text>
-            <Text style={styles.smallText}>
-              এই তথ্য শুধুমাত্র নামাজের সময় গণনার জন্য ব্যবহার করা হবে।
-            </Text>
+        <View style={styles.infoCard}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="information-circle" size={24} color="#037764" />
+            <Text style={styles.cardTitle}>কেন প্রয়োজন?</Text>
           </View>
+          <Text style={styles.cardText}>
+            • নামাজের সময় সঠিকভাবে গণনা করতে
+            {"\n"}• আপনার নিকটতম মসজিদ খুঁজে পেতে
+            {"\n"}• স্থানীয় ইসলামিক ইভেন্ট সম্পর্কে জানতে
+          </Text>
+        </View>
 
-          {location && (
-            <>
-              <View style={styles.addressCard}>
-                <Text style={styles.highlightText}>আপনার অবস্থান:</Text>
-                <Text style={styles.addressText}>
-                  {getAddressString(address)}
-                </Text>
-              </View>
-
-              <View style={styles.coordinatesCard}>
-                <Text style={styles.coordinatesText}>
-                  অক্ষাংশ: {location.coords.latitude.toFixed(4)}
-                </Text>
-                <Text style={styles.coordinatesText}>
-                  দ্রাঘিমাংশ: {location.coords.longitude.toFixed(4)}
-                </Text>
-              </View>
-            </>
-          )}
-
-          {permissionDenied && (
-            <View style={styles.warningCard}>
-              <Text style={styles.warningText}>
-                আপনি অবস্থান অনুমতি দেননি। সেটিংস থেকে এটি পরিবর্তন করতে পারেন।
+        {location && (
+          <View style={styles.locationCard}>
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="place" size={24} color="#037764" />
+              <Text style={styles.cardTitle}>আপনার বর্তমান অবস্থান</Text>
+            </View>
+            <Text style={styles.locationText}>{getAddressString(address)}</Text>
+            <View style={styles.coordinatesContainer}>
+              <Text style={styles.coordinateText}>
+                অক্ষাংশ: {location.latitude.toFixed(6)}
+              </Text>
+              <Text style={styles.coordinateText}>
+                দ্রাঘিমাংশ: {location.longitude.toFixed(6)}
               </Text>
             </View>
-          )}
-        </ScrollView>
-      </View>
+          </View>
+        )}
+
+        {permissionDenied && (
+          <View style={styles.warningCard}>
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="warning" size={24} color="#d32f2f" />
+              <Text style={styles.warningTitle}>অনুমতি প্রয়োজন</Text>
+            </View>
+            <Text style={styles.warningText}>
+              আপনি অবস্থান অনুমতি দেননি। সেটিংস থেকে এটি পরিবর্তন করতে পারেন।
+            </Text>
+          </View>
+        )}
+      </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.button, loading && styles.disabledButton]}
+          style={[
+            styles.locationButton,
+            locationLoading && styles.buttonDisabled,
+          ]}
           onPress={getLocationPermission}
-          disabled={loading}
+          disabled={locationLoading}
         >
-          {loading ? (
+          {locationLoading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <View style={styles.buttonContent}>
+            <>
               <MaterialIcons name="my-location" size={20} color="white" />
               <Text style={styles.buttonText}>
-                {location ? "অবস্থান আপডেট করুন" : "অবস্থান অনুমতি দিন"}
+                {location ? "অবস্থান আপডেট করুন" : "অবস্থান নির্ধারণ করুন"}
               </Text>
-            </View>
+            </>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.continueButton,
-            (!location || loading) && styles.disabledButton,
-          ]}
+          style={[styles.continueButton, !location && styles.buttonDisabled]}
           onPress={handleContinue}
-          disabled={!location || loading}
+          disabled={!location || continueLoading}
         >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <View style={styles.buttonContent}>
-              <Text style={styles.buttonText}>এগিয়ে যান</Text>
-              <Ionicons name="arrow-forward" size={20} color="white" />
-            </View>
-          )}
+          <Text style={styles.buttonText}>এগিয়ে যান</Text>
+          <Ionicons name="arrow-forward" size={20} color="white" />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -235,119 +262,158 @@ export default function AskLocation() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
-    paddingTop: 30,
-  },
-  mainContent: {
-    flex: 1,
+    backgroundColor: "#f8f9fa",
   },
   scrollContainer: {
-    padding: 25,
-    paddingTop: 20,
-    paddingBottom: 100,
+    padding: 10,
+    paddingBottom: 120,
+    paddingTop: 40,
   },
-  iconContainer: {
+  header: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  iconCircle: {
+    backgroundColor: "#037764",
+    width: 60,
+    height: 60,
+    borderRadius: 40,
+    justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
+    shadowColor: "#037764",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
     fontFamily: "bangla_bold",
-    fontSize: 24,
+    fontSize: 20,
     color: "#037764",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontFamily: "bangla_regular",
+    color: "#6c757d",
+    textAlign: "center",
+    lineHeight: 24,
+    maxWidth: "90%",
   },
   infoCard: {
-    backgroundColor: "#f0fdf4",
+    backgroundColor: "white",
+    borderRadius: 12,
     padding: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#bbf7d0",
-    marginBottom: 25,
-  },
-  infoText: {
-    fontFamily: "bangla_regular",
-    fontSize: 16,
-    color: "#166534",
-    textAlign: "center",
-    marginBottom: 10,
-    lineHeight: 24,
-  },
-  smallText: {
-    fontFamily: "bangla_regular",
-    fontSize: 14,
-    color: "#4d7c0f",
-    textAlign: "center",
-  },
-  addressCard: {
-    backgroundColor: "#ecfdf5",
-    padding: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#a7f3d0",
-    marginBottom: 15,
-  },
-  highlightText: {
-    fontFamily: "bangla_bold",
-    fontSize: 16,
-    color: "#047857",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  addressText: {
-    fontFamily: "bangla_regular",
-    color: "#065f46",
-    textAlign: "center",
-  },
-  coordinatesCard: {
-    backgroundColor: "#f0f9ff",
-    padding: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#bae6fd",
     marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 1,
+    borderLeftWidth: 2,
+    borderLeftColor: "#037764",
   },
-  coordinatesText: {
-    fontFamily: "bangla_regular",
-    fontSize: 15,
-    color: "#0369a1",
-    textAlign: "center",
-    marginVertical: 5,
+  locationCard: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 1,
+    borderLeftWidth: 2,
+    borderLeftColor: "#037764",
   },
   warningCard: {
-    backgroundColor: "#fef2f2",
+    backgroundColor: "#fff3f3",
+    borderRadius: 12,
     padding: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#fecaca",
     marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderLeftWidth: 2,
+    borderLeftColor: "#f44336",
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontFamily: "bangla_bold",
+    fontSize: 16,
+    color: "#037764",
+    marginLeft: 10,
+  },
+  warningTitle: {
+    fontFamily: "bangla_bold",
+    fontSize: 18,
+    color: "#d32f2f",
+    marginLeft: 10,
+  },
+  cardText: {
+    fontFamily: "bangla_regular",
+    lineHeight: 24,
+    color: "#495057",
+  },
+  locationText: {
+    fontFamily: "bangla_medium",
+    lineHeight: 24,
+    color: "#2e7d32",
+    marginBottom: 10,
+  },
+  coordinatesContainer: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+  },
+  coordinateText: {
+    fontFamily: "bangla_regular",
+    fontSize: 14,
+    color: "#616161",
+    marginVertical: 2,
   },
   warningText: {
     fontFamily: "bangla_regular",
     fontSize: 14,
-    color: "#b91c1c",
-    textAlign: "center",
+    lineHeight: 22,
+    color: "#d32f2f",
   },
   footer: {
-    padding: 25,
-    paddingBottom: 30,
-    backgroundColor: "#f8fafc",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    backgroundColor: "white",
     borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
+    borderTopColor: "#e0e0e0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  button: {
+  locationButton: {
     backgroundColor: "#0288d1",
     padding: 16,
     borderRadius: 10,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    marginBottom: 12,
+    shadowColor: "#0288d1",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 4,
-    marginBottom: 15,
+    shadowRadius: 8,
+    elevation: 3,
   },
   continueButton: {
     backgroundColor: "#037764",
@@ -356,23 +422,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#037764",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  disabledButton: {
-    backgroundColor: "#bdbdbd",
-  },
-  buttonContent: {
-    flexDirection: "row",
-    alignItems: "center",
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     fontFamily: "bangla_medium",
     fontSize: 16,
     color: "white",
-    marginHorizontal: 10,
+    marginHorizontal: 8,
   },
 });

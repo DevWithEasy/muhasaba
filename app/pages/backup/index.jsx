@@ -1,9 +1,19 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Buffer } from "buffer";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as fflate from "fflate";
 import { useState } from "react";
-import { Alert, Button, Platform, Share, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 
 const APP_DIR = FileSystem.documentDirectory + "app_dir";
 const BACKUP_DIR = FileSystem.documentDirectory + "backups";
@@ -25,7 +35,6 @@ export default function Backup() {
     "todo_data.json",
   ].map((name) => `${APP_DIR}/${name}`);
 
-  // Create backup directory if it doesn't exist
   const ensureBackupDirExists = async () => {
     const dirInfo = await FileSystem.getInfoAsync(BACKUP_DIR);
     if (!dirInfo.exists) {
@@ -33,13 +42,11 @@ export default function Backup() {
     }
   };
 
-  // Create a zip backup of all files
   const createBackup = async () => {
     setIsProcessing(true);
     try {
       await ensureBackupDirExists();
 
-      // Read all files
       const fileContents = {};
       let hasError = false;
 
@@ -60,56 +67,47 @@ export default function Backup() {
 
       if (hasError) {
         Alert.alert(
-          "Warning",
-          "Some files couldn't be read, backup may be incomplete"
+          "সতর্কতা",
+          "কিছু ফাইল পড়া যায়নি, ব্যাকআপটি অসম্পূর্ণ হতে পারে"
         );
       }
 
-      // Create zip file
       const zipData = fflate.zipSync(fileContents);
       const zipBuffer = Buffer.from(zipData.buffer);
       const zipFileName = `muhasaba_app_backup.zip`;
       const zipPath = `${BACKUP_DIR}/${zipFileName}`;
 
-      // Save zip file
       await FileSystem.writeAsStringAsync(zipPath, zipBuffer.toString("base64"), {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      Alert.alert("Success", "Backup created successfully!");
+      Alert.alert("সফল", "ব্যাকআপ সফলভাবে তৈরি হয়েছে!");
       return zipPath;
     } catch (error) {
       console.error("Backup error:", error);
-      Alert.alert("Error", "Failed to create backup");
+      Alert.alert("ত্রুটি", "ব্যাকআপ তৈরি করতে ব্যর্থ হয়েছে");
       return null;
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Share the backup file
   const shareBackup = async () => {
     const zipPath = await createBackup();
     if (!zipPath) return;
 
     try {
-      if (Platform.OS === "android") {
-        // On Android, we need to make the file readable
-        await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-      }
-
       await Sharing.shareAsync(zipPath, {
         mimeType: "application/zip",
-        dialogTitle: "Share App Backup",
+        dialogTitle: "অ্যাপ ব্যাকআপ শেয়ার করুন",
         UTI: "public.zip-archive",
       });
     } catch (error) {
       console.error("Sharing error:", error);
-      Alert.alert("Error", "Failed to share backup");
+      Alert.alert("ত্রুটি", "ব্যাকআপ শেয়ার করতে ব্যর্থ হয়েছে");
     }
   };
 
-  // Save backup to device storage
   const saveBackupToDevice = async () => {
     setIsProcessing(true);
     try {
@@ -117,20 +115,17 @@ export default function Backup() {
       if (!zipPath) return;
 
       if (Platform.OS === 'android') {
-        // Request permission to access storage
         const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
         
         if (!permissions.granted) {
-          Alert.alert("Permission required", "Please grant permission to save the backup");
+          Alert.alert("অনুমতি প্রয়োজন", "ব্যাকআপ সংরক্ষণ করতে অনুগ্রহ করে অনুমতি দিন");
           return;
         }
 
-        // Read the backup file
         const base64Content = await FileSystem.readAsStringAsync(zipPath, {
           encoding: FileSystem.EncodingType.Base64,
         });
 
-        // Create the file in the selected directory
         const fileName = zipPath.split('/').pop();
         const newUri = await FileSystem.StorageAccessFramework.createFileAsync(
           permissions.directoryUri,
@@ -138,57 +133,174 @@ export default function Backup() {
           'application/zip'
         );
         
-        // Write the file
         await FileSystem.writeAsStringAsync(newUri, base64Content, {
           encoding: FileSystem.EncodingType.Base64,
         });
 
-        Alert.alert("Success", `Backup saved to device as ${fileName}`);
+        Alert.alert("সফল", `${fileName} নামে ডিভাইসে ব্যাকআপ সংরক্ষণ করা হয়েছে`);
       } else if (Platform.OS === 'ios') {
-        // For iOS, we'll use the share dialog to let user save to Files app
         const result = await Share.share({
           url: zipPath,
-          title: 'Save Backup',
+          title: 'ব্যাকআপ সংরক্ষণ করুন',
           type: 'application/zip',
           options: {
-            dialogTitle: 'Save Backup to Files',
+            dialogTitle: 'ফাইলস অ্যাপে ব্যাকআপ সংরক্ষণ করুন',
             UTI: 'public.zip-archive'
           }
         });
 
         if (result.action === Share.sharedAction) {
-          Alert.alert("Success", "Backup saved successfully");
+          Alert.alert("সফল", "ব্যাকআপ সফলভাবে সংরক্ষণ করা হয়েছে");
         } else if (result.action === Share.dismissedAction) {
-          Alert.alert("Info", "Backup save cancelled");
+          Alert.alert("তথ্য", "ব্যাকআপ সংরক্ষণ বাতিল করা হয়েছে");
         }
       }
     } catch (error) {
       console.error("Save to device error:", error);
-      Alert.alert("Error", "Failed to save backup to device");
+      Alert.alert("ত্রুটি", "ডিভাইসে ব্যাকআপ সংরক্ষণ করতে ব্যর্থ হয়েছে");
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 20, marginBottom: 20 }}>Backup & Restore</Text>
-      
-      <Button
-        title="Create & Share Backup"
-        onPress={shareBackup}
-        disabled={isProcessing}
-      />
-      
-      <View style={{ marginTop: 10 }}>
-        <Button
-          title="Save Backup to Device"
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.iconCircle}>
+            <Ionicons name="cloud-download" size={36} color="#037764" />
+          </View>
+          <Text style={styles.title}>ডাটা ব্যাকআপ</Text>
+          <Text style={styles.subtitle}>
+            আপনার অ্যাপের সমস্ত ডেটা এবং সেটিংসের একটি ব্যাকআপ তৈরি করুন। 
+            নিরাপদ স্থানে সংরক্ষণ করুন যাতে ভবিষ্যতে প্রয়োজন হলে পুনরুদ্ধার করতে পারেন।
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.button, isProcessing && styles.buttonDisabled]}
+          onPress={shareBackup}
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <>
+              <Ionicons name="share-social" size={20} color="white" />
+              <Text style={styles.buttonText}>শেয়ার করুন</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton, isProcessing && styles.buttonDisabled]}
           onPress={saveBackupToDevice}
           disabled={isProcessing}
-        />
+        >
+          {isProcessing ? (
+            <ActivityIndicator color="#037764" />
+          ) : (
+            <>
+              <Ionicons name="save" size={20} color="#037764" />
+              <Text style={[styles.buttonText, styles.secondaryButtonText]}>ডিভাইসে সংরক্ষণ করুন</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <Text style={styles.note}>
+          দ্রষ্টব্য: ব্যাকআপ ফাইলটি নিরাপদ স্থানে সংরক্ষণ করুন। এটি আপনার সমস্ত গুরুত্বপূর্ণ ডেটা ধারণ করে।
+        </Text>
       </View>
-      
-      {isProcessing && <Text style={{ marginTop: 20 }}>Processing...</Text>}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8f9fa",
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  iconCircle: {
+    backgroundColor: "white",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#e9ecef",
+    marginBottom: 16,
+    shadowColor: "#037764",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 28,
+    fontFamily: "bangla_bold",
+    color: "#037764",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontFamily: 'bangla_regular',
+    color: "#6c757d",
+    textAlign: "center",
+    lineHeight: 24,
+    maxWidth: "90%",
+    marginBottom: 24,
+  },
+  button: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#037764",
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    width: "100%",
+    maxWidth: 300,
+    marginBottom: 16,
+    shadowColor: "#037764",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  secondaryButton: {
+    backgroundColor: "white",
+    borderWidth: 2,
+    borderColor: "#037764",
+  },
+  secondaryButtonText: {
+    color: "#037764",
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: "white",
+    fontFamily: "bangla_medium",
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  note: {
+    fontFamily: 'bangla_regular',
+    fontSize: 12,
+    color: "#adb5bd",
+    textAlign: "center",
+    marginTop: 24,
+    maxWidth: "90%",
+  },
+});

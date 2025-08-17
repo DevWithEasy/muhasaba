@@ -1,10 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   NetInfo,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -30,8 +30,20 @@ export default function PrayerTimeView() {
   // Retrieve user location from AsyncStorage
   const getSavedLocation = async () => {
     try {
-      const jsonValue = await AsyncStorage.getItem("userLocation");
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      const appDir = `${FileSystem.documentDirectory}app_dir`;
+      const fileUri = `${appDir}/user_data.json`;
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+      if (fileInfo.exists) {
+        const fileContent = await FileSystem.readAsStringAsync(fileUri);
+        const userData = JSON.parse(fileContent);
+        console.log(userData);
+        if (userData.location) {
+          return userData.location;
+        } else {
+          return null;
+        }
+      }
     } catch (error) {
       console.error("Error reading location:", error);
       return null;
@@ -356,7 +368,13 @@ export default function PrayerTimeView() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 10, backgroundColor: "#ffffff", borderRadius: 8 },
+  container: {
+    padding: 10,
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
   currentPrayerText: {
     fontSize: 18,
     fontFamily: "bangla_bold",

@@ -23,15 +23,35 @@ export default function AskPrayerYear() {
   const today = new Date();
 
   useEffect(() => {
-    if (params.age) {
-      const parsedAge = parseInt(params.age);
-      if (!isNaN(parsedAge)) {
-        setAge(parsedAge);
-        setPrayerAge(Math.max(0, parsedAge - 7));
-      } else {
-        Alert.alert("ত্রুটি", "বয়স সঠিকভাবে লোড হয়নি");
+    const loadUserData = async () => {
+      try {
+        const appDir = `${FileSystem.documentDirectory}app_dir`;
+        const fileUri = `${appDir}/user_data.json`;
+        const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+        if (fileInfo.exists) {
+          const fileContent = await FileSystem.readAsStringAsync(fileUri);
+          const userData = JSON.parse(fileContent);
+          const parsedAge = parseInt(userData.age);
+          setAge(parsedAge);
+          setPrayerAge(Math.max(0, parsedAge - 7));
+          setPrayerYears(userData.prayerYears)
+        } else {
+          if (params.age) {
+            const parsedAge = parseInt(params.age);
+            if (!isNaN(parsedAge)) {
+              setAge(parsedAge);
+              setPrayerAge(Math.max(0, parsedAge - 7));
+            } else {
+              Alert.alert("ত্রুটি", "বয়স সঠিকভাবে লোড হয়নি");
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
       }
-    }
+    };
+    loadUserData()
   }, [params.age]);
 
   const savePrayerData = async () => {
@@ -223,7 +243,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContainer: {
-    padding: 25,
+    padding: 15,
     paddingTop: 40,
     paddingBottom: 100,
   },
@@ -267,7 +287,6 @@ const styles = StyleSheet.create({
   },
   highlightText: {
     fontFamily: "bangla_bold",
-    fontSize: 18,
     color: "#047857",
     textAlign: "center",
     marginVertical: 10,
@@ -297,7 +316,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    elevation: 2,
+    elevation: 0.5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -346,7 +365,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: "bangla_medium",
-    fontSize: 18,
+    fontSize: 16,
     color: "white",
     marginRight: 10,
   },
