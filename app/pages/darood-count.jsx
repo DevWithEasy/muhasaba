@@ -1,23 +1,37 @@
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
-import { useLocalSearchParams } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Dimensions, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Vibration,
+  View,
+} from "react-native";
 import convertToBanglaNumbers from "../../utils/convertToBanglaNumber";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const daroods = [
   {
     id: 1,
     name: "darood_ibrahim",
-    ar: "اَللّهُمَّ صَلِّ عَلى مُحَمَّدٍ وَّعَلى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلى إِبْرَاهِيْمَ وَعَلى آلِ إِبْرَاهِيْمَ إِنَّكَ حَمِيْدٌ مَجِيْدُ، اَللّهُمَّ بَارِكْ عَلى مُحَمَّدٍ وَّعَلى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلى إِبْرَاهِيْمَ وَعَلى آلِ إِبْرَاهِيْمَ إِنَّكَ حَمِيْدٌ مَّجِيْدٌ",
-    bn: "আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিওঁ ওয়া আলা আলি মুহাম্মাদিন, কামা সাল্লাইতা আলা ইব্রাহিমা ওয়া আলা আলি ইব্রাহীম, ইন্নাকা হামিদুম মাজীদ। আল্লাহুম্মা বারিক আলা মুহাম্মাদিওঁ ওয়া আলা আলি মুহাম্মাদিন, কামা বারাকতা আলা ইব্রাহিমা ওয়া আলা আলি ইব্রাহীম, ইন্নাকা হামিদুম মাজীদ।",
-    meaning: "হে আল্লাহ, হযরত মুহাম্মদ (সাঃ) এবং তাঁর বংশধরের উপর শান্তি ও রহমত বর্ষণ করুন, যেমনটি করেছিলেন হযরত ইব্রাহীম (আঃ) এবং তাঁর বংশধরের উপর। নিশ্চয়ই আপনি প্রশংসিত, সম্মানিত। হে আল্লাহ, হযরত মুহাম্মদ (সাঃ) এবং তাঁর বংশধরের উপর বরকত বর্ষণ করুন, যেমনটি করেছিলেন হযরত ইব্রাহীম (আঃ) এবং তাঁর বংশধরের উপর। নিশ্চয়ই আপনি প্রশংসিত, সম্মানিত।",
-  }
+    ar: "اَللّهُمَّ صَلِّ عَلى مُحَمَّدٍ ...",
+    bn: "আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিওঁ ...",
+    meaning: "হে আল্লাহ, হযরত মুহাম্মদ (সাঃ) এবং তাঁর বংশধরের উপর শান্তি...",
+  },
 ];
 
 const DATA_FILE_PATH = `${FileSystem.documentDirectory}app_dir/darood_data.json`;
 
+// ✅ update darood count in JSON
 async function updateDaroodCount(date, daroodType, newCount) {
   try {
     const fileContent = await FileSystem.readAsStringAsync(DATA_FILE_PATH);
@@ -42,17 +56,58 @@ async function updateDaroodCount(date, daroodType, newCount) {
   }
 }
 
+// ✅ play short sound effect
+async function playClickSound() {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require("../../assets/audio/click.wav")
+    );
+    await sound.playAsync();
+    // unload after play
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) {
+        sound.unloadAsync();
+      }
+    });
+  } catch (error) {
+    console.log("Sound play error:", error);
+  }
+}
+
 export default function DaroodCount() {
   const params = useLocalSearchParams();
   const { daroodType, date, currentCount } = params;
   const [count, setCount] = useState(Number(currentCount) || 0);
   const [modalVisible, setModalVisible] = useState(false);
   const currentDarood = daroods.find((item) => item.name === daroodType);
+  const [hapticAction, setHapticOption] = useState("volume"); // volume | silent | vibrate
 
+  const handleHapticAction = () => {
+    if (hapticAction === "volume") {
+      setHapticOption("silent");
+    } else if (hapticAction === "silent") {
+      setHapticOption("vibrate");
+    } else {
+      setHapticOption("volume");
+    }
+  };
+
+  // ✅ count increment with hapticAction
   const handleIncrement = async () => {
     const newCount = count + 1;
     setCount(newCount);
     await updateDaroodCount(date, daroodType, newCount);
+
+    // Handle haptic / sound
+    if (hapticAction === "volume") {
+      await playClickSound();
+    } else if (hapticAction === "vibrate") {
+      if (Platform.OS === "ios") {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } else {
+        Vibration.vibrate([0, 75, 0, 0]); 
+      }
+    }
   };
 
   const handleDecrement = async () => {
@@ -70,8 +125,26 @@ export default function DaroodCount() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={handleHapticAction}
+              style={{ marginRight: 4 }}
+            >
+              {hapticAction === "volume" ? (
+                <Ionicons name="volume-high" size={24} color="#037764" />
+              ) : hapticAction === "silent" ? (
+                <Ionicons name="volume-mute" size={24} color="#037764" />
+              ) : (
+                <MaterialIcons name="vibration" size={24} color="#037764" />
+              )}
+            </TouchableOpacity>
+          ),
+        }}
+      />
       {/* Header with Darood name */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.headerButton}
         onPress={() => setModalVisible(true)}
       >
@@ -81,13 +154,17 @@ export default function DaroodCount() {
       </TouchableOpacity>
 
       {/* Main counter area */}
-      <TouchableOpacity 
-        style={styles.counterArea} 
+      <TouchableOpacity
+        style={styles.counterArea}
         onPress={handleIncrement}
         activeOpacity={0.8}
       >
         <View style={styles.counterCircle}>
-          <Text adjustsFontSizeToFit={true} numberOfLines={1} style={styles.countText}>
+          <Text
+            adjustsFontSizeToFit={true}
+            numberOfLines={1}
+            style={styles.countText}
+          >
             {convertToBanglaNumbers(count)}
           </Text>
         </View>
@@ -95,13 +172,13 @@ export default function DaroodCount() {
 
       {/* Fixed action buttons at bottom */}
       <View style={styles.actionButtons}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, styles.resetButton]}
           onPress={handleReset}
         >
           <Text style={styles.actionButtonText}>রিসেট</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, styles.decrementButton]}
           onPress={handleDecrement}
           disabled={count === 0}
@@ -122,7 +199,7 @@ export default function DaroodCount() {
             <Text style={styles.arabicText}>{currentDarood.ar}</Text>
             <Text style={styles.banglaText}>{currentDarood.bn}</Text>
             <Text style={styles.meaningText}>{currentDarood.meaning}</Text>
-            
+
             <Pressable
               style={styles.modalCloseButton}
               onPress={() => setModalVisible(false)}
@@ -137,11 +214,7 @@ export default function DaroodCount() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    padding: 16,
-  },
+  container: { flex: 1, backgroundColor: "#f8fafc", padding: 16 },
   headerButton: {
     backgroundColor: "#ffffff",
     padding: 10,
@@ -150,10 +223,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#037764",
     shadowColor: "#037764",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -164,11 +234,7 @@ const styles = StyleSheet.create({
     color: "#037764",
     textAlign: "center",
   },
-  counterArea: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  counterArea: { flex: 1, justifyContent: "center", alignItems: "center" },
   counterCircle: {
     width: width * 0.5,
     height: width * 0.5,
@@ -188,9 +254,9 @@ const styles = StyleSheet.create({
     fontFamily: "bangla_bold",
     fontSize: width * 0.2,
     color: "#037764",
-    textAlign: 'center',
+    textAlign: "center",
     includeFontPadding: false,
-    textAlignVertical: 'center',
+    textAlignVertical: "center",
   },
   actionButtons: {
     flexDirection: "row",
@@ -207,12 +273,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     elevation: 2,
   },
-  resetButton: {
-    backgroundColor: "#e53e3e",
-  },
-  decrementButton: {
-    backgroundColor: "#f6ad55",
-  },
+  resetButton: { backgroundColor: "#e53e3e" },
+  decrementButton: { backgroundColor: "#f6ad55" },
   actionButtonText: {
     fontFamily: "bangla_medium",
     fontSize: 16,

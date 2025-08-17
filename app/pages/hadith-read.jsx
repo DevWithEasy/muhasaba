@@ -201,7 +201,7 @@ export default function HadithRead() {
                     hadith.read.status ? styles.activeText : styles.inActiveText
                   }
                 >
-                  {hadith.read.status ? "হ্যাঁ করেছি" : "না করিনি"}
+                  {hadith.read.status ? "হ্যাঁ পড়েছি" : "না পড়িনি"}
                 </Text>
               </TouchableOpacity>
             </View>

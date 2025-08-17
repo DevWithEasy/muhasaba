@@ -102,7 +102,7 @@ const HadithScreen = () => {
               style={styles.bookItem}
             >
               <View style={styles.bookContent}>
-                <HexagonAvatar text={item.abvr_code} color={item.color_code} />
+                <HexagonAvatar text={convertToBanglaNumbers(item.id)} color='#037764' />
                 <View style={styles.bookTextContainer}>
                   <Text style={styles.bookTitle}>{item.title}</Text>
                   <Text style={styles.bookArabicTitle}>{item.title_ar}</Text>
@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     fontFamily: 'bangla_medium',
+    color : '#037764'
   },
   bookArabicTitle: {
     fontFamily: 'arabic_regular',
@@ -175,8 +176,7 @@ const styles = StyleSheet.create({
   },
   hexagonText: {
     color: 'white',
-    fontFamily: 'bangla_medium',
-    fontSize: 16,
+    fontFamily: 'bangla_bold',
   },
   noResults: {
     flex: 1,

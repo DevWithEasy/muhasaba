@@ -1,10 +1,23 @@
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
-import { useLocalSearchParams } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Dimensions, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Vibration,
+  View,
+} from "react-native";
 import convertToBanglaNumbers from "../../utils/convertToBanglaNumber";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const tasbihs = [
   {
@@ -53,6 +66,7 @@ const tasbihs = [
 
 const DATA_FILE_PATH = `${FileSystem.documentDirectory}app_dir/tasbih_data.json`;
 
+// ✅ update tasbih count in JSON
 async function updateTasbihCount(date, tasbihType, newCount) {
   try {
     const fileContent = await FileSystem.readAsStringAsync(DATA_FILE_PATH);
@@ -77,17 +91,58 @@ async function updateTasbihCount(date, tasbihType, newCount) {
   }
 }
 
+// ✅ play short sound effect
+async function playClickSound() {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require("../../assets/audio/click.wav")
+    );
+    await sound.playAsync();
+    // unload after play
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) {
+        sound.unloadAsync();
+      }
+    });
+  } catch (error) {
+    console.log("Sound play error:", error);
+  }
+}
+
 export default function TasbihCount() {
   const params = useLocalSearchParams();
   const { tasbihType, date, currentCount, target } = params;
   const [count, setCount] = useState(Number(currentCount) || 0);
   const [modalVisible, setModalVisible] = useState(false);
   const currentTasbih = tasbihs.find((item) => item.name === tasbihType);
+  const [hapticAction, setHapticOption] = useState("volume"); // volume | silent | vibrate
 
+  const handleHapticAction = () => {
+    if (hapticAction === "volume") {
+      setHapticOption("silent");
+    } else if (hapticAction === "silent") {
+      setHapticOption("vibrate");
+    } else {
+      setHapticOption("volume");
+    }
+  };
+
+  // ✅ count increment with hapticAction
   const handleIncrement = async () => {
     const newCount = count + 1;
     setCount(newCount);
     await updateTasbihCount(date, tasbihType, newCount);
+
+    // Handle haptic / sound
+    if (hapticAction === "volume") {
+      await playClickSound();
+    } else if (hapticAction === "vibrate") {
+      if (Platform.OS === "ios") {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } else {
+        Vibration.vibrate([0, 75, 0, 0]); 
+      }
+    }
   };
 
   const handleDecrement = async () => {
@@ -105,6 +160,25 @@ export default function TasbihCount() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={handleHapticAction}
+              style={{ marginRight: 4 }}
+            >
+              {hapticAction === "volume" ? (
+                <Ionicons name="volume-high" size={24} color="#037764" />
+              ) : hapticAction === "silent" ? (
+                <Ionicons name="volume-mute" size={24} color="#037764" />
+              ) : (
+                <MaterialIcons name="vibration" size={24} color="#037764" />
+              )}
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      
       {/* Header with Tasbih name */}
       <TouchableOpacity 
         style={styles.headerButton}

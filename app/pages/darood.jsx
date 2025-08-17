@@ -1,7 +1,8 @@
+import { useFocusEffect } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, Alert } from 'react-native';
 import PrayerCalendar from '../../components/prayer/PrayerCalendar';
 import convertToBanglaNumbers from '../../utils/convertToBanglaNumber';
 
@@ -72,24 +73,54 @@ export default function Darood() {
   const router = useRouter();
   const [darood, setDarood] = useState(initialDaroodState);
   const [found, setFound] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentDarood, setCurrentDarood] = useState(null);
+  const [manualCount, setManualCount] = useState('');
 
-  useEffect(() => {
-    const loadDataForCurrentDate = async () => {
-      const data = await loadDaroodData(darood.date);
-      if (data) {
-        setDarood(data);
-        setFound(true);
-      } else {
-        if (darood.date === getTodayDate()) {
-          setFound(true);
-        } else {
-          setFound(false);
-          setDarood((prev) => ({ ...initialDaroodState, date: prev.date }));
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      let abortController = new AbortController();
+
+      const loadDataForCurrentDate = async () => {
+        try {
+          const data = await loadDaroodData(darood.date, { signal: abortController.signal });
+
+          if (!isActive) return;
+
+          if (data) {
+            setDarood(data);
+            setFound(true);
+          } else {
+            if (darood.date === getTodayDate()) {
+              setFound(true);
+              setDarood(prev => ({ 
+                ...initialDaroodState, 
+                date: prev.date,
+              }));
+            } else {
+              setFound(false);
+              setDarood(prev => ({ ...initialDaroodState, date: prev.date }));
+            }
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('Failed to load Darood data:', error);
+            if (isActive) {
+              setFound(false);
+            }
+          }
         }
-      }
-    };
-    loadDataForCurrentDate();
-  }, [darood.date]);
+      };
+
+      loadDataForCurrentDate();
+
+      return () => {
+        isActive = false;
+        abortController.abort();
+      };
+    }, [darood.date])
+  );
 
   const handleDateChange = async (date) => {
     const formattedDate = formatDate(date);
@@ -115,6 +146,32 @@ export default function Darood() {
         currentCount: darood.count[daroodType] || 0,
       }
     });
+  };
+
+  const handleLongPress = (daroodType) => {
+    setCurrentDarood(daroodType);
+    setManualCount(darood.count[daroodType]?.toString() || '0');
+    setModalVisible(true);
+  };
+
+  const handleSaveManualCount = async () => {
+    const count = parseInt(manualCount);
+    if (isNaN(count) || count < 0) {
+      Alert.alert('ভুল ইনপুট', 'দয়া করে একটি বৈধ সংখ্যা লিখুন');
+      return;
+    }
+
+    const updatedDarood = {
+      ...darood,
+      count: {
+        ...darood.count,
+        [currentDarood]: count
+      }
+    };
+
+    setDarood(updatedDarood);
+    await saveDaroodData(updatedDarood);
+    setModalVisible(false);
   };
 
   return (
@@ -148,6 +205,8 @@ export default function Darood() {
                 key={item.id}
                 style={styles.daroodItem}
                 onPress={() => navigateToCountScreen(item.name)}
+                onLongPress={() => handleLongPress(item.name)}
+                delayLongPress={500}
               >
                 <Text style={styles.daroodLabel}>{item.label}</Text>
                 <View style={styles.countContainer}>
@@ -162,6 +221,45 @@ export default function Darood() {
             ))}
           </>
         )}
+
+        {/* Manual Count Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>ম্যানুয়াল কাউন্ট এডিট করুন</Text>
+              
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={manualCount}
+                onChangeText={setManualCount}
+                placeholder="কাউন্ট সংখ্যা লিখুন"
+                placeholderTextColor="#999"
+              />
+
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>বাতিল</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleSaveManualCount}
+                >
+                  <Text style={styles.buttonText}>সেভ করুন</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </ScrollView>
   );
@@ -231,5 +329,53 @@ const styles = StyleSheet.create({
     fontFamily: 'bangla_medium',
     color: 'white',
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+  },
+  modalTitle: {
+    fontFamily: 'bangla_bold',
+    fontSize: 18,
+    color: '#037764',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 20,
+    fontFamily: 'bangla_medium',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#e53e3e',
+  },
+  saveButton: {
+    backgroundColor: '#037764',
+  },
+  buttonText: {
+    color: 'white',
+    fontFamily: 'bangla_medium',
   },
 });

@@ -1,13 +1,18 @@
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Dimensions,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
+  Vibration,
   View,
 } from "react-native";
 import convertToBanglaNumbers from "../../utils/convertToBanglaNumber";
@@ -51,6 +56,7 @@ const amols = [
 const QURAN_DIR = `${FileSystem.documentDirectory}app_dir/quran`;
 const DATA_FILE_PATH = `${FileSystem.documentDirectory}app_dir/friday_data.json`;
 
+// ✅ update amol count in JSON
 async function updateAmolCount(date, amolType, newCount) {
   try {
     const fileContent = await FileSystem.readAsStringAsync(DATA_FILE_PATH);
@@ -75,6 +81,24 @@ async function updateAmolCount(date, amolType, newCount) {
   }
 }
 
+// ✅ play short sound effect
+async function playClickSound() {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require("../../assets/audio/click.wav")
+    );
+    await sound.playAsync();
+    // unload after play
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) {
+        sound.unloadAsync();
+      }
+    });
+  } catch (error) {
+    console.log("Sound play error:", error);
+  }
+}
+
 export default function AmolCount() {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -82,11 +106,34 @@ export default function AmolCount() {
   const [count, setCount] = useState(Number(currentCount) || 0);
   const [modalVisible, setModalVisible] = useState(false);
   const currentAmol = amols.find((item) => item.name === amolType);
+  const [hapticAction, setHapticOption] = useState("volume"); // volume | silent | vibrate
 
+  const handleHapticAction = () => {
+    if (hapticAction === "volume") {
+      setHapticOption("silent");
+    } else if (hapticAction === "silent") {
+      setHapticOption("vibrate");
+    } else {
+      setHapticOption("volume");
+    }
+  };
+
+  // ✅ count increment with hapticAction
   const handleIncrement = async () => {
     const newCount = count + 1;
     setCount(newCount);
     await updateAmolCount(date, amolType, newCount);
+
+    // Handle haptic / sound
+    if (hapticAction === "volume") {
+      await playClickSound();
+    } else if (hapticAction === "vibrate") {
+      if (Platform.OS === "ios") {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } else {
+        Vibration.vibrate([0, 75, 0, 0]); 
+      }
+    }
   };
 
   const handleDecrement = async () => {
@@ -128,6 +175,25 @@ export default function AmolCount() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={handleHapticAction}
+              style={{ marginRight: 4 }}
+            >
+              {hapticAction === "volume" ? (
+                <Ionicons name="volume-high" size={24} color="#037764" />
+              ) : hapticAction === "silent" ? (
+                <Ionicons name="volume-mute" size={24} color="#037764" />
+              ) : (
+                <MaterialIcons name="vibration" size={24} color="#037764" />
+              )}
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      
       {/* Header with Amol name */}
       <TouchableOpacity
         style={styles.headerButton}

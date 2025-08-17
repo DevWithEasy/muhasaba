@@ -1,7 +1,17 @@
+import { useFocusEffect } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Modal,
+  TextInput,
+  Alert,
+} from 'react-native';
 import PrayerCalendar from '../../components/prayer/PrayerCalendar';
 import convertToBanglaNumbers from '../../utils/convertToBanglaNumber';
 
@@ -82,24 +92,39 @@ export default function Tasbih() {
   const router = useRouter();
   const [tasbih, setTasbih] = useState(initialTasbihState);
   const [found, setFound] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentTasbih, setCurrentTasbih] = useState(null);
+  const [manualCount, setManualCount] = useState('');
 
-  useEffect(() => {
-    const loadDataForCurrentDate = async () => {
-      const data = await loadTasbihData(tasbih.date);
-      if (data) {
-        setTasbih(data);
-        setFound(true);
-      } else {
-        if (tasbih.date === getTodayDate()) {
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const loadDataForCurrentDate = async () => {
+        const data = await loadTasbihData(tasbih.date);
+        
+        if (!isActive) return; // Don't update if component is unmounted
+
+        if (data) {
+          setTasbih(data);
           setFound(true);
         } else {
-          setFound(false);
-          setTasbih((prev) => ({ ...initialTasbihState, date: prev.date }));
+          if (tasbih.date === getTodayDate()) {
+            setFound(true);
+          } else {
+            setFound(false);
+            setTasbih((prev) => ({ ...initialTasbihState, date: prev.date }));
+          }
         }
-      }
-    };
-    loadDataForCurrentDate();
-  }, [tasbih.date]);
+      };
+
+      loadDataForCurrentDate();
+
+      return () => {
+        isActive = false; // Cleanup function
+      };
+    }, [tasbih.date])
+  );
 
   const handleDateChange = async (date) => {
     const formattedDate = formatDate(date);
@@ -127,6 +152,32 @@ export default function Tasbih() {
         target: targetTasbih.target
       }
     });
+  };
+
+  const handleLongPress = (tasbihType) => {
+    setCurrentTasbih(tasbihType);
+    setManualCount(tasbih.count[tasbihType]?.toString() || '0');
+    setModalVisible(true);
+  };
+
+  const handleSaveManualCount = async () => {
+    const count = parseInt(manualCount);
+    if (isNaN(count) || count < 0) {
+      Alert.alert('ভুল ইনপুট', 'দয়া করে একটি বৈধ সংখ্যা লিখুন');
+      return;
+    }
+
+    const updatedTasbih = {
+      ...tasbih,
+      count: {
+        ...tasbih.count,
+        [currentTasbih]: count
+      }
+    };
+
+    setTasbih(updatedTasbih);
+    await saveTasbihData(updatedTasbih);
+    setModalVisible(false);
   };
 
   return (
@@ -160,6 +211,8 @@ export default function Tasbih() {
                 key={item.id}
                 style={styles.tasbihItem}
                 onPress={() => navigateToCountScreen(item.name)}
+                onLongPress={() => handleLongPress(item.name)}
+                delayLongPress={500}
               >
                 <Text numberOfLines={1} style={styles.tasbihLabel}>{item.label}</Text>
                 <View style={styles.countContainer}>
@@ -174,6 +227,45 @@ export default function Tasbih() {
             ))}
           </>
         )}
+
+        {/* Manual Count Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>ম্যানুয়াল কাউন্ট এডিট করুন</Text>
+              
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={manualCount}
+                onChangeText={setManualCount}
+                placeholder="কাউন্ট সংখ্যা লিখুন"
+                placeholderTextColor="#999"
+              />
+
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>বাতিল</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleSaveManualCount}
+                >
+                  <Text style={styles.buttonText}>সেভ করুন</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </ScrollView>
   );
@@ -245,5 +337,53 @@ const styles = StyleSheet.create({
     fontFamily: 'bangla_medium',
     color: 'white',
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+  },
+  modalTitle: {
+    fontFamily: 'bangla_bold',
+    fontSize: 18,
+    color: '#037764',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 20,
+    fontFamily: 'bangla_medium',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#e53e3e',
+  },
+  saveButton: {
+    backgroundColor: '#037764',
+  },
+  buttonText: {
+    color: 'white',
+    fontFamily: 'bangla_medium',
   },
 });
