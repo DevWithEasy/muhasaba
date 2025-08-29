@@ -1,17 +1,19 @@
-import { useState, useEffect } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
+import { useCallback, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
+  View,
 } from "react-native";
 import PrayerCalendar from "../../components/prayer/PrayerCalendar";
-import PrayerSwitch from "../../components/prayer/PrayerSwitch";
 import PrayerDetailItem from "../../components/prayer/PrayerDetailItem";
+import PrayerSwitch from "../../components/prayer/PrayerSwitch";
 import RakaatModal from "../../components/prayer/RakaatModal";
-import * as FileSystem from "expo-file-system";
 import TahajjudPrayerSwitch from "../../components/prayer/TahajjudPrayerSwitch";
+import NafilPrayerSwitch from "../../components/prayer/NafilPrayerSwitch";
 
 const prayerNames = [
   { name: "fajr", label: "ফজর", defaultRakaat: 2 },
@@ -20,6 +22,7 @@ const prayerNames = [
   { name: "maghrib", label: "মাগরিব", defaultRakaat: 3 },
   { name: "isha", label: "ইশা", defaultRakaat: 4 },
   { name: "tahajjud", label: "তাহাজ্জুদ", defaultRakaat: 2 },
+  { name: "nafil", label: "নফল", defaultRakaat: 2 },
 ];
 
 // Helper function to format date as YYYY-MM-DD
@@ -45,6 +48,7 @@ const initialPrayerState = {
     maghrib: false,
     isha: false,
     tahajjud: false,
+    nafil: false,
   },
   rakaat: {
     fajr: 0,
@@ -53,6 +57,7 @@ const initialPrayerState = {
     maghrib: 0,
     isha: 0,
     tahajjud: 0,
+    nafil: 0,
   },
   jamaat: {
     fajr: false,
@@ -110,25 +115,26 @@ export default function Prayer() {
   const [currentPrayer, setCurrentPrayer] = useState("");
   const [tempRakaat, setTempRakaat] = useState("");
 
-  useEffect(() => {
-    const loadDataForCurrentDate = async () => {
-      const data = await loadPrayerData(prayer.date);
-      console.log(data);
-      if (data) {
-        setPrayer(data);
-        setFound(true);
-      } else {
-        if (prayer.date === getTodayDate()) {
+  useFocusEffect(
+    useCallback(() => {
+      const loadDataForCurrentDate = async () => {
+        const data = await loadPrayerData(prayer.date);
+        if (data) {
+          setPrayer(data);
           setFound(true);
         } else {
-          setFound(false);
-          setPrayer((prev) => ({ ...initialPrayerState, date: prev.date }));
+          if (prayer.date === getTodayDate()) {
+            setFound(true);
+          } else {
+            setFound(false);
+            setPrayer((prev) => ({ ...initialPrayerState, date: prev.date }));
+          }
         }
-      }
-    };
+      };
 
-    loadDataForCurrentDate();
-  }, [prayer.date]);
+      loadDataForCurrentDate();
+    }, [prayer.date])
+  );
 
   const handleDateChange = async (date) => {
     const formattedDate = formatDate(date);
@@ -223,7 +229,7 @@ export default function Prayer() {
             <Text style={styles.sectionTitle}>নামাজ ট্র্যাকার</Text>
 
             <View style={styles.prayerRow}>
-              {prayerNames.filter(p => p.name !== "tahajjud").map((prayerItem) => (
+              {prayerNames.filter(p => p.name !== "tahajjud" && p.name !== "nafil").map((prayerItem) => (
                 <PrayerSwitch
                   key={prayerItem.name}
                   label={prayerItem.label}
@@ -237,6 +243,11 @@ export default function Prayer() {
               isActive={prayer.salat.tahajjud}
               onPress={() => togglePrayer("tahajjud")}
             />
+            
+            <NafilPrayerSwitch
+              isActive={prayer.salat.nafil}
+              onPress={() => togglePrayer("nafil")}
+            />
 
             {Object.entries(prayer.salat).some(([_, value]) => value) && (
               <View style={styles.prayerDetails}>
@@ -248,11 +259,11 @@ export default function Prayer() {
                         key={prayerItem.name}
                         label={prayerItem.label}
                         rakaat={prayer.rakaat[prayerItem.name]}
-                        isJamaat={prayerItem.name !== "tahajjud" ? prayer.jamaat[prayerItem.name] : false}
+                        isJamaat={prayerItem.name !== "tahajjud" && prayerItem.name !== "nafil" ? prayer.jamaat[prayerItem.name] : false}
                         onEdit={() => openRakaatModal(prayerItem.name)}
-                        onToggleJamaat={prayerItem.name !== "tahajjud" ? 
+                        onToggleJamaat={prayerItem.name !== "tahajjud" && prayerItem.name !== "nafil" ? 
                           () => handleToggleJamaat(prayerItem.name) : null}
-                        showJamaatToggle={prayerItem.name !== "tahajjud"}
+                        showJamaatToggle={prayerItem.name !== "tahajjud" && prayerItem.name !== "nafil"}
                       />
                     )
                 )}

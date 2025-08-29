@@ -37,7 +37,7 @@ export default function Index() {
         padding: 20
       }}
     >
-      <Text style={{fontFamily: 'bangla_bold', fontSize: 50, color: '#037764ff'}}>মুহাসাবা</Text>
+      <Text style={{fontFamily: 'bangla_bold', fontSize: 50, color: '#037764'}}>মুহাসাবা</Text>
       <Text style={{fontFamily: 'bangla_medium', fontSize: 16, color: '#ff1100ff'}}>(আত্মসমালোচনা)</Text>
     </View>
   );

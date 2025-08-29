@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "muhasaba",
+    "name": "মুহাসাবা-আত্নসমালোচনা",
     "slug": "muhasaba",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -28,7 +28,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/adaptive-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -37,9 +37,9 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
+          "icon": "./assets/images/icon.png",
           "color": "#ffffff",
-          "sounds": ["./assets/notification-sound.wav"]
+          "sounds": ["./assets/audio/notification-sound.mp3"]
         }
       ]
     ],

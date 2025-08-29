@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: 'bangla_medium',
-    fontSize: 16,
+    fontSize: 15,
     color: '#334155',
     marginBottom: 8,
     marginLeft: 5,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontFamily: 'bangla_regular',
-    fontSize: 16,
+    fontSize: 15,
     color: '#0f172a',
     paddingVertical: 15,
     paddingLeft: 10,
@@ -298,7 +298,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 25,
-    paddingBottom: 30,
     backgroundColor: '#f8fafc',
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',

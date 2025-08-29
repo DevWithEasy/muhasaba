@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     fontFamily: "bangla_regular",
+    fontSize: 15,
     lineHeight: 26,
     color: "#495057",
   },

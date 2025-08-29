@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
   },
   quote: {
     fontFamily: "bangla_regular",
+    fontSize: 15,
     textAlign: "center",
     color: "#037764",
     lineHeight: 26,

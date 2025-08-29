@@ -9,13 +9,16 @@ import {
   Text,
   View,
 } from "react-native";
+import calculatePrayerSlots from "../utils/calculatePrayerSlots";
+import convertToBanglaNumbers from "../utils/convertToBanglaNumber";
 import getAddressString from "../utils/getAddressString";
 
 export default function PrayerTimeView() {
   const [location, setLocation] = useState(null);
   const [prayerTimes, setPrayerTimes] = useState(null);
+  const [prayerSlots, setPrayerSlots] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPrayer, setCurrentPrayer] = useState(null);
+  const [currentSlot, setCurrentSlot] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isOnline, setIsOnline] = useState(true);
@@ -37,13 +40,11 @@ export default function PrayerTimeView() {
       if (fileInfo.exists) {
         const fileContent = await FileSystem.readAsStringAsync(fileUri);
         const userData = JSON.parse(fileContent);
-        console.log(userData);
         if (userData.location) {
           return userData.location;
-        } else {
-          return null;
         }
       }
+      return null;
     } catch (error) {
       console.error("Error reading location:", error);
       return null;
@@ -89,10 +90,11 @@ export default function PrayerTimeView() {
       const timings = data.data.timings;
 
       setPrayerTimes(timings);
+      const slots = calculatePrayerSlots(timings);
+      setPrayerSlots(slots);
       await savePrayerTimes(timings);
       setLastUpdated(new Date().toISOString());
-      calculateCurrentPrayer(timings);
-
+      calculateCurrentPrayerSlot(slots);
       return true;
     } catch (error) {
       console.error("Error fetching prayer times:", error);
@@ -100,70 +102,66 @@ export default function PrayerTimeView() {
     }
   };
 
-  // Calculate current prayer and remaining time
-  const calculateCurrentPrayer = (timings) => {
+  // Calculate current prayer slot and remaining time
+  const calculateCurrentPrayerSlot = (slots) => {
     const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTimeInMinutes = currentHours * 60 + currentMinutes;
 
-    const prayerTimesArray = [
-      { name: "Fajr", time: timings.Fajr },
-      { name: "Sunrise", time: timings.Sunrise },
-      { name: "Dhuhr", time: timings.Dhuhr },
-      { name: "Asr", time: timings.Asr },
-      { name: "Maghrib", time: timings.Maghrib },
-      { name: "Isha", time: timings.Isha },
-    ];
+    let activeSlot = null;
+    let remainingMinutes = 0;
 
-    // Convert prayer times to minutes
-    const prayersInMinutes = prayerTimesArray.map((prayer) => {
-      const [hours, minutes] = prayer.time.split(":").map(Number);
-      return {
-        name: prayer.name,
-        timeInMinutes: hours * 60 + minutes,
-      };
-    });
+    for (const slot of slots) {
+      const [startHours, startMins] = slot.start.split(":").map(Number);
+      const [endHours, endMins] = slot.end.split(":").map(Number);
 
-    let activePrayer = null;
-    let remaining = 0;
+      const startTimeInMinutes = startHours * 60 + startMins;
+      let endTimeInMinutes = endHours * 60 + endMins;
 
-    // Check between prayers
-    for (let i = 0; i < prayersInMinutes.length - 1; i++) {
+      // Handle overnight slots (like tahajjud)
+      if (endTimeInMinutes < startTimeInMinutes) {
+        endTimeInMinutes += 1440; // Add 24 hours
+      }
+
+      // Check if current time is within this slot
+      let currentTimeForComparison = currentTimeInMinutes;
       if (
-        currentTime >= prayersInMinutes[i].timeInMinutes &&
-        currentTime < prayersInMinutes[i + 1].timeInMinutes
+        endTimeInMinutes > 1440 &&
+        currentTimeInMinutes < startTimeInMinutes
       ) {
-        activePrayer = prayersInMinutes[i];
-        remaining = prayersInMinutes[i + 1].timeInMinutes - currentTime;
+        currentTimeForComparison += 1440;
+      }
+
+      if (
+        currentTimeForComparison >= startTimeInMinutes &&
+        currentTimeForComparison < endTimeInMinutes
+      ) {
+        activeSlot = slot;
+        remainingMinutes = endTimeInMinutes - currentTimeForComparison;
         break;
       }
     }
 
-    // Check after Isha (until next Fajr)
-    if (
-      !activePrayer &&
-      currentTime >= prayersInMinutes[prayersInMinutes.length - 1].timeInMinutes
-    ) {
-      activePrayer = prayersInMinutes[prayersInMinutes.length - 1];
-      remaining = 1440 - currentTime + prayersInMinutes[0].timeInMinutes;
-    }
-
-    // Check before Fajr (after midnight but before Fajr)
-    if (!activePrayer && currentTime < prayersInMinutes[0].timeInMinutes) {
-      activePrayer = prayersInMinutes[prayersInMinutes.length - 1]; // Isha of previous day
-      remaining = prayersInMinutes[0].timeInMinutes - currentTime;
-    }
-
-    setCurrentPrayer(activePrayer);
-    setTimeRemaining(remaining);
+    setCurrentSlot(activeSlot);
+    setTimeRemaining(remainingMinutes);
   };
 
   // Format last updated time
   const formatLastUpdated = (isoString) => {
     if (!isoString) return "অজানা";
+
     const date = new Date(isoString);
-    return (
-      date.toLocaleTimeString("bn-BD") + `, ` + date.toLocaleDateString("bn-BD")
-    );
+    const options = {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    };
+
+    const timeString = date.toLocaleTimeString("bn-BD", options);
+    const dateString = date.toLocaleDateString("bn-BD");
+
+    return `${timeString}, ${dateString}`;
   };
 
   // Format remaining time
@@ -177,12 +175,16 @@ export default function PrayerTimeView() {
   // Get prayer name in Bengali
   const getBengaliPrayerName = (name) => {
     const names = {
-      Fajr: "ফজর",
-      Sunrise: "সূর্যোদয়",
-      Dhuhr: "যোহর",
-      Asr: "আসর",
-      Maghrib: "মাগরিব",
-      Isha: "ঈশা",
+      fajr: "ফজর",
+      morning_restricted: "নিষিদ্ধ সময় (সূর্যোদয় পর)",
+      israkh: "ইশরাক",
+      dhuhr_restricted: "নিষিদ্ধ সময় (জোহর পূর্ব)",
+      dhuhr: "জোহর",
+      asr: "আসর",
+      maghrib: "মাগরিব",
+      isha: "ঈশা",
+      midnight: "মধ্যরাত",
+      tahajjud: "তাহাজ্জুদ",
     };
     return names[name] || name;
   };
@@ -210,7 +212,9 @@ export default function PrayerTimeView() {
           const cachedTimes = await getSavedPrayerTimes();
           if (cachedTimes) {
             setPrayerTimes(cachedTimes);
-            calculateCurrentPrayer(cachedTimes);
+            const slots = calculatePrayerSlots(cachedTimes);
+            setPrayerSlots(slots);
+            calculateCurrentPrayerSlot(slots);
           }
         }
       } else {
@@ -218,7 +222,9 @@ export default function PrayerTimeView() {
         const cachedTimes = await getSavedPrayerTimes();
         if (cachedTimes) {
           setPrayerTimes(cachedTimes);
-          calculateCurrentPrayer(cachedTimes);
+          const slots = calculatePrayerSlots(cachedTimes);
+          setPrayerSlots(slots);
+          calculateCurrentPrayerSlot(slots);
         }
       }
 
@@ -229,8 +235,8 @@ export default function PrayerTimeView() {
 
     // Update every minute for real-time countdown
     const interval = setInterval(() => {
-      if (prayerTimes) {
-        calculateCurrentPrayer(prayerTimes);
+      if (prayerSlots.length > 0) {
+        calculateCurrentPrayerSlot(prayerSlots);
       }
     }, 60000);
 
@@ -259,13 +265,19 @@ export default function PrayerTimeView() {
     <View style={styles.container}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <View style={{ width: "60%" }}>
-          {currentPrayer && (
+          {currentSlot && (
             <>
               <Text style={styles.currentPrayerText}>
-                {getBengaliPrayerName(currentPrayer.name)}
+                {getBengaliPrayerName(currentSlot.name)}
               </Text>
               <Text style={styles.timeRemainingText}>
-                শেষ হতে বাকি: {formatTimeRemaining(timeRemaining)}
+                শেষ হতে বাকি:{" "}
+                {convertToBanglaNumbers(formatTimeRemaining(timeRemaining))}
+              </Text>
+              <Text style={styles.slotTimeText}>
+                {convertToBanglaNumbers(
+                  `${currentSlot.start} - ${currentSlot.end}`
+                )}
               </Text>
             </>
           )}
@@ -301,6 +313,7 @@ export default function PrayerTimeView() {
           fontFamily: "bangla_regular",
           color: "#666",
           textAlign: "center",
+          marginTop: 8,
         }}
       >
         {getAddressString(location.address)}
@@ -314,46 +327,56 @@ export default function PrayerTimeView() {
       >
         <View style={{ width: "50%" }}>
           <Text style={styles.sunTimeText}>
-            সূর্যোদয়: {prayerTimes.Sunrise}
+            সূর্যোদয়: {convertToBanglaNumbers(prayerTimes.Sunrise)}
           </Text>
           <Text style={styles.sunTimeText}>
-            সূর্যাস্ত: {prayerTimes.Sunset}
+            সূর্যাস্ত: {convertToBanglaNumbers(prayerTimes.Sunset)}
           </Text>
         </View>
         <View style={{ width: "50%" }}>
-          <Text style={styles.sunTimeText}>সেহেরি: {prayerTimes.Fajr}</Text>
-          <Text style={styles.sunTimeText}>ইফতার: {prayerTimes.Maghrib}</Text>
+          <Text style={styles.sunTimeText}>
+            সেহেরি: {convertToBanglaNumbers(prayerTimes.Fajr)}
+          </Text>
+          <Text style={styles.sunTimeText}>
+            ইফতার: {convertToBanglaNumbers(prayerTimes.Maghrib)}
+          </Text>
         </View>
       </View>
 
       <View style={styles.prayerTimesContainer}>
-        {["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].map((prayer) => (
-          <View
-            key={prayer}
-            style={[
-              styles.prayerTimeItem,
-              currentPrayer?.name === prayer && styles.activePrayer,
-            ]}
-          >
-            <View />
-            <Text
+        {prayerSlots
+          .filter((slot) =>
+            ["fajr", "dhuhr", "asr", "maghrib", "isha"].includes(slot.name)
+          )
+          .map((slot) => (
+            <View
+              key={slot.name}
               style={[
-                styles.prayerNameTime,
-                currentPrayer?.name === prayer && styles.activePrayerNameTime,
+                styles.prayerTimeItem,
+                currentSlot?.name === slot.name && styles.activePrayer,
               ]}
             >
-              {getBengaliPrayerName(prayer)}
-            </Text>
-            <Text
-              style={[
-                styles.prayerNameTime,
-                currentPrayer?.name === prayer && styles.activePrayerNameTime,
-              ]}
-            >
-              {prayerTimes[prayer]}
-            </Text>
-          </View>
-        ))}
+              <View />
+              <Text
+                style={[
+                  styles.prayerNameTime,
+                  currentSlot?.name === slot.name &&
+                    styles.activePrayerNameTime,
+                ]}
+              >
+                {getBengaliPrayerName(slot.name)}
+              </Text>
+              <Text
+                style={[
+                  styles.prayerNameTime,
+                  currentSlot?.name === slot.name &&
+                    styles.activePrayerNameTime,
+                ]}
+              >
+                {convertToBanglaNumbers(slot.start)}
+              </Text>
+            </View>
+          ))}
       </View>
 
       {!isOnline && (
@@ -383,7 +406,11 @@ const styles = StyleSheet.create({
   },
   timeRemainingText: {
     color: "#666",
-    marginBottom: 10,
+    fontFamily: "bangla_regular",
+  },
+  slotTimeText: {
+    color: "#666",
+    fontSize: 12,
     fontFamily: "bangla_regular",
   },
   sunTimeContainer: {
@@ -407,13 +434,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#e9e9e9ff",
     borderRadius: 10,
     paddingVertical: 5,
-  },
-  prayer: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#e9e9e9ff",
-    marginBottom: 5,
   },
   activePrayer: {
     backgroundColor: "#037764ff",

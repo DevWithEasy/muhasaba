@@ -4,14 +4,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 export default function AskPrayerYear() {
@@ -140,8 +138,7 @@ export default function AskPrayerYear() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <View
       style={styles.container}
     >
       <View style={styles.mainContent}>
@@ -229,7 +226,7 @@ export default function AskPrayerYear() {
           </TouchableOpacity>
         </View>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -303,7 +300,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: "bangla_medium",
-    fontSize: 16,
+    fontSize: 15,
     color: "#334155",
     marginBottom: 10,
     marginLeft: 5,
@@ -325,7 +322,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontFamily: "bangla_regular",
-    fontSize: 16,
+    fontSize: 15,
     color: "#0f172a",
     paddingVertical: 15,
     paddingLeft: 10,
@@ -342,7 +339,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 25,
-    paddingBottom: 30,
     backgroundColor: "#f8fafc",
     borderTopWidth: 1,
     borderTopColor: "#e2e8f0",
