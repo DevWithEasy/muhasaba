@@ -142,20 +142,37 @@ export default function Prayer() {
   };
 
   const togglePrayer = (prayerName) => {
+    const currentState = prayer.salat[prayerName];
+    const isTahajjudOrNafil = prayerName === "tahajjud" || prayerName === "nafil";
+    
+    let newRakaatValue;
+    
+    if (!currentState) {
+      // সুইচ চালু করছে
+      if (isTahajjudOrNafil) {
+        // তাহাজ্জুদ/নফলের জন্য ডিফল্ট রাকাত সেট করা
+        newRakaatValue = prayerNames.find(p => p.name === prayerName)?.defaultRakaat || 0;
+      } else {
+        // ফরজ নামাজের জন্য ডিফল্ট রাকাত
+        newRakaatValue = prayerNames.find(p => p.name === prayerName)?.defaultRakaat || 0;
+      }
+    } else {
+      // সুইচ বন্ধ করছে
+      newRakaatValue = 0; // সব ধরনের নামাজ বন্ধ করলে রাকাত 0
+    }
+    
     const updatedPrayer = {
       ...prayer,
       salat: {
         ...prayer.salat,
-        [prayerName]: !prayer.salat[prayerName],
+        [prayerName]: !currentState,
       },
-      // Set default rakaat when enabling a prayer
       rakaat: {
         ...prayer.rakaat,
-        [prayerName]: prayer.salat[prayerName] 
-          ? prayer.rakaat[prayerName] 
-          : prayerNames.find(p => p.name === prayerName)?.defaultRakaat || 0,
+        [prayerName]: newRakaatValue,
       },
     };
+    
     setPrayer(updatedPrayer);
     savePrayerData(updatedPrayer);
   };

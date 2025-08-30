@@ -1,7 +1,8 @@
+// FridayAmolCalender.js (updated)
 import { Calendar } from "react-native-calendars";
 import formatDate from "../utils/formatDate";
 
-export default function PrayerCalendar({ selectedDate, onDateChange }) {
+export default function FridayAmolCalendar({ selectedDate, onDateChange }) {
   const today = formatDate(new Date());
   
   // Check if a date is Friday (day 5 in JavaScript, where 0=Sunday)
@@ -21,45 +22,55 @@ export default function PrayerCalendar({ selectedDate, onDateChange }) {
 
   const lastFriday = getLastFriday();
 
-  // Generate disabled dates (all non-Fridays, future Fridays, and today if not Friday)
-  const getDisabledDates = () => {
-    const disabledDates = {};
+  // Generate marked dates with proper restrictions
+  const getMarkedDates = () => {
+    const markedDates = {};
     const startDate = new Date();
-    startDate.setFullYear(startDate.getFullYear() - 1); // 1 year back
+    startDate.setFullYear(startDate.getFullYear() - 1);
     const endDate = new Date();
-    endDate.setFullYear(endDate.getFullYear() + 1); // 1 year forward
+    endDate.setFullYear(endDate.getFullYear() + 1);
 
     let currentDate = new Date(startDate);
     while (currentDate <= endDate) {
       const dateStr = formatDate(currentDate);
-      // Disable if:
-      // 1. Not Friday OR
-      // 2. Is future Friday OR
-      // 3. Is today but not Friday
-      if (!isFriday(dateStr) || 
-          new Date(dateStr) > new Date() || 
-          (dateStr === today && !isFriday(dateStr))) {
-        disabledDates[dateStr] = { 
+      
+      if (isFriday(dateStr) && new Date(dateStr) <= new Date()) {
+        // Enable only past and current Fridays
+        markedDates[dateStr] = { 
+          disabled: false
+        };
+      } else {
+        // Disable all other dates
+        markedDates[dateStr] = { 
           disabled: true,
           disableTouchEvent: true
         };
       }
+      
       currentDate.setDate(currentDate.getDate() + 1);
     }
-    return disabledDates;
-  };
 
-  const markedDates = {
-    ...getDisabledDates(),
-    [lastFriday]: {
-      selected: true,
-      selectedColor: '#037764',
-      selectedTextColor: '#ffffff'
-    },
-    [today]: {
-      disabled: !isFriday(today),
-      disableTouchEvent: true
+    // Highlight selected date
+    if (markedDates[formatDate(selectedDate)]) {
+      markedDates[formatDate(selectedDate)] = {
+        ...markedDates[formatDate(selectedDate)],
+        selected: true,
+        selectedColor: '#037764',
+        selectedTextColor: '#ffffff'
+      };
     }
+
+    // Highlight today if it's Friday
+    if (isFriday(today)) {
+      markedDates[today] = {
+        ...markedDates[today],
+        today: true,
+        textColor: '#ffffff',
+        backgroundColor: '#037764'
+      };
+    }
+
+    return markedDates;
   };
 
   return (
@@ -74,15 +85,16 @@ export default function PrayerCalendar({ selectedDate, onDateChange }) {
         textMonthFontFamily: 'bangla_bold',
         textDayHeaderFontFamily: 'bangla_medium',
       }}
-      markedDates={markedDates}
+      markedDates={getMarkedDates()}
       onDayPress={(day) => {
+        // Only allow selecting enabled Fridays
         if (isFriday(day.dateString) && new Date(day.dateString) <= new Date()) {
           onDateChange(new Date(day.dateString));
         }
       }}
       disableAllTouchEventsForDisabledDays={true}
       initialDate={lastFriday}
-      current={lastFriday} // Force calendar to show last Friday initially
+      current={lastFriday}
     />
   );
 }

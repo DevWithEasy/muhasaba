@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as FileSystem from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
+import getLocalDateString from '../../../utils/getLocalDateString';
 
 export default function AskAge() {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function AskAge() {
         name,
         birthDate: date.toISOString(),
         age,
-        createdAt: new Date().toISOString()
+        createdAt: getLocalDateString()
       };
 
       // Save to JSON file

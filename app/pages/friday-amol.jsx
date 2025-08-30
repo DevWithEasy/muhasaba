@@ -24,8 +24,23 @@ const getTodayDate = () => {
   return formatDate(new Date());
 };
 
+// Check if a date is Friday (day 5 in JavaScript, where 0=Sunday)
+const isFriday = (dateString) => {
+  const date = new Date(dateString);
+  return date.getDay() === 5;
+};
+
+// Get the most recent Friday
+const getLastFriday = () => {
+  const date = new Date();
+  while (date.getDay() !== 5) {
+    date.setDate(date.getDate() - 1);
+  }
+  return formatDate(date);
+};
+
 const initialAmolState = {
-  date: getTodayDate(),
+  date: getLastFriday(), // শুরুতে শেষ শুক্রবার সেট করুন
   count: {
     amol_1: 0,
     amol_2: 0,
@@ -78,18 +93,23 @@ export default function FridayAmol() {
   const router = useRouter();
   const [amol, setAmol] = useState(initialAmolState);
   const [found, setFound] = useState(true);
+  const [isSelectedDateFriday, setIsSelectedDateFriday] = useState(isFriday(initialAmolState.date));
 
   useEffect(() => {
     const loadDataForCurrentDate = async () => {
       const data = await loadAmolData(amol.date);
+      setIsSelectedDateFriday(isFriday(amol.date));
+      
       if (data) {
         setAmol(data);
         setFound(true);
       } else {
-        if (amol.date === getTodayDate()) {
-          setFound(true);
-        } else {
+        // Only allow creating new entries for today if it's Friday
+        if (amol.date === getTodayDate() && isFriday(amol.date)) {
           setFound(false);
+          setAmol((prev) => ({ ...initialAmolState, date: prev.date }));
+        } else {
+          setFound(true);
           setAmol((prev) => ({ ...initialAmolState, date: prev.date }));
         }
       }
@@ -99,28 +119,38 @@ export default function FridayAmol() {
 
   const handleDateChange = async (date) => {
     const formattedDate = formatDate(date);
-    setAmol((prev) => ({ ...prev, date: formattedDate }));
+    
+    // Only allow selecting Fridays that are not in the future
+    if (isFriday(formattedDate) && new Date(formattedDate) <= new Date()) {
+      setAmol((prev) => ({ ...prev, date: formattedDate }));
+    }
   };
 
   const handleCreateNewEntry = async () => {
-    const newEntry = {
-      ...initialAmolState,
-      date: amol.date,
-    };
-    setAmol(newEntry);
-    await saveAmolData(newEntry);
-    setFound(true);
+    // Only allow creating entries for today if it's Friday
+    if (amol.date === getTodayDate() && isFriday(amol.date)) {
+      const newEntry = {
+        ...initialAmolState,
+        date: amol.date,
+      };
+      setAmol(newEntry);
+      await saveAmolData(newEntry);
+      setFound(true);
+    }
   };
 
   const navigateToCountScreen = (amolType) => {
-    router.push({
-      pathname: '/pages/friday-amol-count',
-      params: {
-        amolType,
-        date: amol.date,
-        currentCount: amol.count[amolType] || 0,
-      }
-    });
+    // Only allow counting for existing entries or today if it's Friday
+    if (found || (amol.date === getTodayDate() && isFriday(amol.date))) {
+      router.push({
+        pathname: '/pages/friday-amol-count',
+        params: {
+          amolType,
+          date: amol.date,
+          currentCount: amol.count[amolType] || 0,
+        }
+      });
+    }
   };
 
   return (
@@ -131,10 +161,16 @@ export default function FridayAmol() {
           onDateChange={handleDateChange}
         />
 
-        {!found ? (
+        {!isSelectedDateFriday ? (
           <View style={styles.notFoundContainer}>
             <Text style={styles.notFoundText}>
-              {amol.date} তারিখে কোন ডাটা পাওয়া যায়নি
+              শুধুমাত্র শুক্রবারের তারিখে আমল ট্র্যাক করা যাবে
+            </Text>
+          </View>
+        ) : !found && amol.date === getTodayDate() && isFriday(amol.date) ? (
+          <View style={styles.notFoundContainer}>
+            <Text style={styles.notFoundText}>
+              আজকের তারিখে কোন ডাটা পাওয়া যায়নি
             </Text>
             <TouchableOpacity
               style={styles.createButton}
@@ -145,7 +181,7 @@ export default function FridayAmol() {
               </Text>
             </TouchableOpacity>
           </View>
-        ) : (
+        ) : found ? (
           <>
             <Text style={styles.sectionTitle}>জুমার আমল ট্র্যাকার</Text>
             
@@ -167,6 +203,12 @@ export default function FridayAmol() {
               </TouchableOpacity>
             ))}
           </>
+        ) : (
+          <View style={styles.notFoundContainer}>
+            <Text style={styles.notFoundText}>
+              এই তারিখে ডাটা এডিট করার অনুমতি নেই। শুধুমাত্র আজকের তারিখে (শুক্রবার) নতুন ডাটা যোগ করা যাবে।
+            </Text>
+          </View>
         )}
       </View>
     </ScrollView>

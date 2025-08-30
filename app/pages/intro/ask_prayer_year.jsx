@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -32,14 +34,14 @@ export default function AskPrayerYear() {
           const userData = JSON.parse(fileContent);
           const parsedAge = parseInt(userData.age);
           setAge(parsedAge);
-          setPrayerAge(Math.max(0, parsedAge - 7));
+          setPrayerAge(Math.max(0, parsedAge - 15));
           setPrayerYears(userData.prayerYears)
         } else {
           if (params.age) {
             const parsedAge = parseInt(params.age);
             if (!isNaN(parsedAge)) {
               setAge(parsedAge);
-              setPrayerAge(Math.max(0, parsedAge - 7));
+              setPrayerAge(Math.max(0, parsedAge - 15));
             } else {
               Alert.alert("ত্রুটি", "বয়স সঠিকভাবে লোড হয়নি");
             }
@@ -138,9 +140,10 @@ export default function AskPrayerYear() {
   };
 
   return (
-    <View
-      style={styles.container}
-    >
+    <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.container}
+        >
       <View style={styles.mainContent}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.title}>নামাজের তথ্য</Text>
@@ -162,19 +165,51 @@ export default function AskPrayerYear() {
           ) : (
             <>
               <View style={styles.infoCard}>
-                <Text style={styles.infoText}>
-                  ইসলামিক বিধান অনুযায়ী ৭ বছর বয়স থেকে নামাজ ফরজ হয়
-                </Text>
-                <Text style={styles.highlightText}>
-                  আপনার বর্তমান বয়স: {age} বছর
-                </Text>
-                <Text style={styles.highlightText}>
-                  আপনার নামাজ পড়ার বয়স: {prayerAge} বছর
-                </Text>
-                <Text style={styles.smallText}>
-                  (হিসাব করা হয়েছে: {today.toLocaleDateString("bn-BD")}{" "}
-                  পর্যন্ত)
-                </Text>
+                <Text style={styles.infoTitle}>ইসলামিক বিধান সম্পর্কে জানুন</Text>
+                
+                <View style={styles.infoItem}>
+                  <Ionicons name="information-circle" size={18} color="#166534" />
+                  <Text style={styles.infoText}>
+                    ইসলামিক শরীয়ত অনুযায়ী নামাজ ফরজ হয় বালেগ হওয়ার পর থেকে
+                  </Text>
+                </View>
+
+                <View style={styles.infoItem}>
+                  <Ionicons name="time" size={18} color="#166534" />
+                  <Text style={styles.infoText}>
+                    ছেলেদের জন্য: স্বপ্নদোষ অথবা ১৫ বছর পূর্ণ হওয়া
+                  </Text>
+                </View>
+
+                <View style={styles.infoItem}>
+                  <Ionicons name="time" size={18} color="#166534" />
+                  <Text style={styles.infoText}>
+                    মেয়েদের জন্য: হায়েজ (মাসিক) শুরু অথবা ১৫ বছর পূর্ণ হওয়া
+                  </Text>
+                </View>
+
+                <View style={styles.infoItem}>
+                  <Ionicons name="book" size={18} color="#166534" />
+                  <Text style={styles.infoText}>
+                    &quot;সাত বছর বয়সে তোমরা তোমাদের সন্তানকে নামাজ পড়তে বলবে, আর দশ বছর বয়সে পড়তে না চাইলে শাস্তি দেবে।&quot; (আবু দাউদ, তিরমিজি){"\n"}অর্থাৎ, ৭ বছর থেকে অভ্যাস করানো এবং ১০ বছর থেকে কঠোরভাবে নিয়মিত নামাজ পড়তে বাধ্য করা — যাতে বালেগ হওয়ার পর নামাজ বাদ না পড়ে।
+                  </Text>
+                </View>
+
+                <View style={styles.highlightSection}>
+                  <Text style={styles.highlightText}>
+                    আপনার বর্তমান বয়স: {age.toLocaleString('bn-BD')} বছর
+                  </Text>
+                  <Text style={styles.highlightText}>
+                    নামাজ ফরজ হওয়ার বয়স: ১৫ বছর
+                  </Text>
+                  <Text style={styles.highlightText}>
+                    আপনার নামাজ পড়ার বয়স: {prayerAge.toLocaleString('bn-BD')} বছর
+                  </Text>
+                  <Text style={styles.smallText}>
+                    (হিসাব করা হয়েছে: {today.toLocaleDateString("bn-BD")}{" "}
+                    পর্যন্ত)
+                  </Text>
+                </View>
               </View>
 
               {prayerAge > 0 && (
@@ -204,6 +239,16 @@ export default function AskPrayerYear() {
                   </Text>
                 </View>
               )}
+
+              {prayerAge <= 0 && (
+                <View style={styles.warningCard}>
+                  <Ionicons name="warning" size={24} color="#b45309" />
+                  <Text style={styles.warningText}>
+                    আপনার বয়স ১৫ বছরের কম হওয়ায় নামাজ এখনো আপনার উপর ফরজ হয়নি। 
+                    তবে নামাজের অভ্যাস গড়ে তুলতে পারেন।
+                  </Text>
+                </View>
+              )}
             </>
           )}
         </ScrollView>
@@ -226,7 +271,7 @@ export default function AskPrayerYear() {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -241,7 +286,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     padding: 15,
-    paddingTop: 40,
     paddingBottom: 100,
   },
   title: {
@@ -249,7 +293,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "#037764",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 10,
   },
   infoCard: {
     backgroundColor: "#f0fdf4",
@@ -258,6 +302,46 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#bbf7d0",
     marginBottom: 30,
+  },
+  infoTitle: {
+    fontFamily: "bangla_bold",
+    fontSize: 18,
+    color: "#166534",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  infoText: {
+    fontFamily: "bangla_regular",
+    fontSize: 14,
+    color: "#166534",
+    marginLeft: 10,
+    flex: 1,
+    lineHeight: 20,
+  },
+  highlightSection: {
+    marginTop: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: "#bbf7d0",
+  },
+  highlightText: {
+    fontFamily: "bangla_bold",
+    fontSize: 15,
+    color: "#047857",
+    textAlign: "center",
+    marginVertical: 5,
+  },
+  smallText: {
+    fontFamily: "bangla_regular",
+    fontSize: 12,
+    color: "#4d7c0f",
+    textAlign: "center",
+    marginTop: 5,
   },
   errorCard: {
     backgroundColor: "#fee2e2",
@@ -275,25 +359,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 15,
   },
-  infoText: {
-    fontFamily: "bangla_regular",
-    fontSize: 16,
-    color: "#166534",
-    marginBottom: 10,
-    textAlign: "center",
+  warningCard: {
+    backgroundColor: "#fffbeb",
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#fcd34d",
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
   },
-  highlightText: {
-    fontFamily: "bangla_bold",
-    color: "#047857",
-    textAlign: "center",
-    marginVertical: 10,
-  },
-  smallText: {
+  warningText: {
     fontFamily: "bangla_regular",
     fontSize: 14,
-    color: "#4d7c0f",
-    textAlign: "center",
-    marginTop: 5,
+    color: "#b45309",
+    marginLeft: 10,
+    flex: 1,
   },
   inputGroup: {
     marginBottom: 20,

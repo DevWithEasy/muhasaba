@@ -263,7 +263,7 @@ export default function PrayerTimeView() {
 
   return (
     <View style={styles.container}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between"}}>
         <View style={{ width: "60%" }}>
           {currentSlot && (
             <>

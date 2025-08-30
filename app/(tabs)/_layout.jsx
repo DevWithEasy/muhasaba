@@ -65,6 +65,24 @@ export default function AppLayout() {
           ),
         }}
       />
+            <Tabs.Screen
+        name="education"
+        options={{
+          title: "ইসলামিক শিক্ষা",
+          tabBarLabel: ({ color }) => (
+            <Text style={{ fontFamily: "bangla_medium", color, fontSize: 12 }}>
+              শিক্ষা
+            </Text>
+          ),
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? "library" : "library-outline"}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="user"
         options={{
