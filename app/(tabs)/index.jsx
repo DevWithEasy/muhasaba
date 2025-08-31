@@ -2,7 +2,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
 import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { Animated, Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView, Swipeable } from "react-native-gesture-handler";
 import PrayerTimeView from "../../components/PrayerTimeView";
 import DaroodCalculation from "../../components/calculation/DaroodCalculation";
@@ -15,8 +15,6 @@ import QuranCalculation from "../../components/calculation/QuranCalculation";
 import SalahCalculation from "../../components/calculation/SalahCalculation";
 import TasbihCalculation from "../../components/calculation/TasbihCalculation";
 import JammatWarning from "../../components/prayer/JamaatWarning";
-
-const { width } = Dimensions.get('window');
 const APP_DIR = FileSystem.documentDirectory + "app_dir";
 
 // Swipeable Calculation Component
