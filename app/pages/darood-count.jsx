@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     fontFamily: "bangla_bold",
-    fontSize: width * 0.2,
+    fontSize: 45,
     color: "#037764",
     textAlign: "center",
     includeFontPadding: false,

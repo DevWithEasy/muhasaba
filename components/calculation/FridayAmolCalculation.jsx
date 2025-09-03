@@ -53,7 +53,7 @@ export default function FridayAmolCalculation({ friday }) {
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={() => router.push("/pages/friday-amol")}
+      onPress={() => router.push("/pages/amol-nama/friday-amol")}
     >
       <Ionicons 
         name={isImproved ? "arrow-up-circle" : "arrow-down-circle"} 
@@ -95,10 +95,15 @@ const styles = StyleSheet.create({
     fontFamily: "bangla_bold",
     marginBottom: 6,
   },
+  subtitle:{
+    fontFamily: "bangla_medium",
+    fontSize: 12,
+    color: "gray"
+  },
   countText: {
     fontFamily: "bangla_medium",
     fontSize: 12,
-    color: "#2d3748",
+    color: "gray",
     marginBottom: 2,
   },
 });

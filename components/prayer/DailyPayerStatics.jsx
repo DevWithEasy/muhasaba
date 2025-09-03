@@ -1,18 +1,16 @@
 import { StyleSheet, Text, View } from "react-native";
-import { CircularProgress } from "react-native-circular-progress";
 import convertToBanglaNumbers from "../../utils/convertToBanglaNumber";
 
+// Main Component
 export default function DailyPayerStatics({ user, salah }) {
-  const createdAt = new Date(user.createdAt);
-  const today = new Date();
+  const validSalah = Array.isArray(salah)
+    ? salah.filter((day) => day?.salat)
+    : [];
 
-  let daysSinceCreation =
-    Math.floor((today - createdAt) / (1000 * 60 * 60 * 24)) + 1;
-  daysSinceCreation = Math.max(0, daysSinceCreation);
+  // Count valid days
+  const daysSinceCreation = Math.max(validSalah.length, 1);
 
-  const expectedPrayers = daysSinceCreation * 5;
-
-  let actualPrayers = 0;
+  // Count prayers
   const prayerCount = {
     fajr: 0,
     dhuhr: 0,
@@ -20,107 +18,108 @@ export default function DailyPayerStatics({ user, salah }) {
     maghrib: 0,
     isha: 0,
   };
+  let actualPrayers = 0;
 
-  salah.forEach((day) => {
-    if (day.salat.fajr) {
-      actualPrayers++;
-      prayerCount.fajr++;
-    }
-    if (day.salat.dhuhr) {
-      actualPrayers++;
-      prayerCount.dhuhr++;
-    }
-    if (day.salat.asr) {
-      actualPrayers++;
-      prayerCount.asr++;
-    }
-    if (day.salat.maghrib) {
-      actualPrayers++;
-      prayerCount.maghrib++;
-    }
-    if (day.salat.isha) {
-      actualPrayers++;
-      prayerCount.isha++;
-    }
+  validSalah.forEach((day) => {
+    const salat = day.salat || {};
+    Object.keys(prayerCount).forEach((prayer) => {
+      if (salat[prayer]) {
+        prayerCount[prayer]++;
+        actualPrayers++;
+      }
+    });
   });
+
+  const expectedPrayers = daysSinceCreation * 5;
+  const completionPercentage =
+    expectedPrayers > 0
+      ? Math.round((actualPrayers / expectedPrayers) * 100)
+      : 0;
 
   return (
     <View style={styles.container}>
-
-      {/* Overall Progress */}
       <View style={styles.section}>
-        <Text style={styles.stats}>
-          অ্যাকাউন্ট খোলার পর থেকে {convertToBanglaNumbers(daysSinceCreation)} দিন হয়েছে
-        </Text>
-        <Text style={styles.stats}>
-          পড়ার কথা: {convertToBanglaNumbers(expectedPrayers)} ওয়াক্ত | পড়েছেন: {convertToBanglaNumbers(actualPrayers)}{" "}
-          ওয়াক্ত
-        </Text>
-
-        <View style={styles.prayerProgressContainer}>
-          <View style={styles.prayerProgress}>
-            <Text style={styles.prayerName}>মোট সালাত</Text>
-            <View style={styles.circularProgressSmall}>
-              <CircularProgress
-                size={70}
-                width={8}
-                fill={
-                  daysSinceCreation > 0
-                    ? (actualPrayers / expectedPrayers) * 100
-                    : 0
-                }
-                tintColor="#037764"
-                backgroundColor="#ecf0f1"
-                rotation={0}
-                lineCap="round"
-              >
-                {() => (
-                  <Text style={styles.circularProgressSmallText}>
-                    {convertToBanglaNumbers(actualPrayers)}/
-                    {convertToBanglaNumbers(expectedPrayers)}
-                  </Text>
-                )}
-              </CircularProgress>
+        {/* Summary Card */}
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>
+                {convertToBanglaNumbers(daysSinceCreation)}
+              </Text>
+              <Text style={styles.summaryLabel}>মোট দিন</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>
+                {convertToBanglaNumbers(expectedPrayers)}
+              </Text>
+              <Text style={styles.summaryLabel}>প্রত্যাশিত সালাত</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>
+                {convertToBanglaNumbers(actualPrayers)}
+              </Text>
+              <Text style={styles.summaryLabel}>পড়া সালাত</Text>
             </View>
           </View>
 
-          {Object.entries(prayerCount).map(([prayer, count]) => (
-            <View key={prayer} style={styles.prayerProgress}>
-              <Text style={styles.prayerName}>
-                {prayer === "fajr"
-                  ? "ফজর"
-                  : prayer === "dhuhr"
-                  ? "যোহর"
-                  : prayer === "asr"
-                  ? "আসর"
-                  : prayer === "maghrib"
-                  ? "মাগরিব"
-                  : "ইশা"}
-              </Text>
-              <View style={styles.circularProgressSmall}>
-                <CircularProgress
-                  size={70}
-                  width={8}
-                  fill={
-                    daysSinceCreation > 0
-                      ? (count / daysSinceCreation) * 100
-                      : 0
-                  }
-                  tintColor="#037764"
-                  backgroundColor="#ecf0f1"
-                  rotation={0}
-                  lineCap="round"
-                >
-                  {() => (
-                    <Text style={styles.circularProgressSmallText}>
-                      {convertToBanglaNumbers(count)}/
-                      {convertToBanglaNumbers(daysSinceCreation)}
-                    </Text>
-                  )}
-                </CircularProgress>
+          <View style={styles.percentageRow}>
+            <Text style={styles.percentageText}>
+              সম্পূর্ণতা: {convertToBanglaNumbers(completionPercentage)}%
+            </Text>
+          </View>
+        </View>
+
+        {/* Individual Prayer Stats */}
+        <View style={styles.prayerStatsContainer}>
+          {Object.entries(prayerCount).map(([prayer, count]) => {
+            const percentage =
+              daysSinceCreation > 0
+                ? Math.round((count / daysSinceCreation) * 100)
+                : 0;
+
+            return (
+              <View key={prayer} style={styles.prayerRow}>
+                <View style={styles.prayerInfo}>
+                  <Text style={styles.prayerName}>
+                    {prayer === "fajr"
+                      ? "ফজর"
+                      : prayer === "dhuhr"
+                      ? "যোহর"
+                      : prayer === "asr"
+                      ? "আসর"
+                      : prayer === "maghrib"
+                      ? "মাগরিব"
+                      : "ইশা"}
+                  </Text>
+                  <Text style={styles.prayerCount}>
+                    {convertToBanglaNumbers(count)}/
+                    {convertToBanglaNumbers(daysSinceCreation)}
+                  </Text>
+                </View>
+                <View style={styles.prayerInfo}>
+                  <View style={styles.percentageBar}>
+                    <View
+                      style={[
+                        styles.percentageFill,
+                        {
+                          width: `${percentage}%`,
+                          backgroundColor:
+                            percentage >= 80
+                              ? "#27ae60"
+                              : percentage >= 50
+                              ? "#f39c12"
+                              : "#e74c3c",
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.percentageTextSmall}>
+                    {convertToBanglaNumbers(percentage)}%
+                  </Text>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
     </View>
@@ -131,78 +130,95 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#f8f9fa",
   },
-  title: {
-    fontSize: 22,
-    fontFamily: "bangla_bold",
-    textAlign: "center",
-    marginBottom: 8,
-    color: "#2c3e50",
-  },
   section: {
-    padding: 10,
-    backgroundColor: "#ffffff",
-    borderRadius: 8,
+    padding: 0,
+    backgroundColor: "#fff",
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: "bangla_semibold",
+    borderColor: "#e0e0e0",
     marginBottom: 10,
-    color: "#34495e",
-    textAlign: "center",
+    overflow: "hidden",
   },
-  stats: {
+  summaryCard: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ecf0f1",
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  summaryItem: {
+    alignItems: "center",
+    flex: 1,
+  },
+  summaryNumber: {
+    fontFamily: "bangla_bold",
+    fontSize: 20,
+    color: "#037764",
+  },
+  summaryLabel: {
     fontFamily: "bangla_regular",
-    marginBottom: 8,
+    fontSize: 12,
     color: "#7f8c8d",
     textAlign: "center",
   },
-  circularProgressContainer: {
+  percentageRow: {
     alignItems: "center",
-    marginVertical: 15,
+    marginTop: 8,
   },
-  circularProgressText: {
-    fontFamily: "bangla_semibold",
-    color: "#2c3e50",
+  percentageText: {
+    fontFamily: "bangla_medium",
+    fontSize: 14,
+    color: "#037764",
   },
-  prayerProgressContainer: {
+  prayerStatsContainer: {
+    padding: 10,
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    marginTop: 10,
   },
-  prayerProgress: {
+  prayerRow: {
+    marginBottom: 12,
+    padding: 8,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    width: "48%",
+  },
+  prayerInfo: {
+    flexDirection: "row",
     alignItems: "center",
-    width: "30%",
-    marginBottom: 15,
+    marginBottom: 6,
+    justifyContent: "space-between",
   },
   prayerName: {
-    fontSize: 14,
     fontFamily: "bangla_medium",
-    color: "#2c3e50",
-    marginBottom: 5,
-  },
-  circularProgressSmall: {
-    alignItems: "center",
-  },
-  circularProgressSmallText: {
-    fontSize: 12,
-    fontFamily: "bangla_bold",
-    color: "#2c3e50",
-  },
-  todayContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 10,
-  },
-  todayProgress: {
-    alignItems: "center",
-  },
-  todayLabel: {
-    marginTop: 8,
     fontSize: 14,
+    color: "#2c3e50",
+    marginBottom: 2,
+  },
+  prayerCount: {
+    fontFamily: "bangla_semibold",
+    fontSize: 12,
     color: "#7f8c8d",
+  },
+  percentageBar: {
+    width: 80,
+    height: 6,
+    backgroundColor: "#d4d4d4ff",
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  percentageFill: {
+    height: "100%",
+    borderRadius: 3,
+  },
+  percentageTextSmall: {
+    fontFamily: "bangla_semibold",
+    fontSize: 12,
+    color: "#2c3e50",
+    minWidth: 35,
+    textAlign: "right",
   }
 });

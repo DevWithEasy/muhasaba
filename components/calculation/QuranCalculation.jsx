@@ -32,7 +32,7 @@ export default function QuranCalculation({ quran }) {
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={() => router.push("/pages/amol-nama/quran")}
+      onPress={() => router.push("/pages/amol-nama/quran-read")}
     >
       <Ionicons 
         name={isIncreased ? "arrow-up-circle" : "arrow-down-circle"} 

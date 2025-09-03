@@ -31,7 +31,7 @@ export default function HadithCalculation({ hadith }) {
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={() => router.push("/pages/amol-nama/hadith")}
+      onPress={() => router.push("/pages/amol-nama/hadith-read")}
     >
       <Ionicons 
         name={isIncreased ? "arrow-up-circle" : "arrow-down-circle"} 

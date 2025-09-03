@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import NetInfo from '@react-native-community/netinfo';
+import NetInfo from "@react-native-community/netinfo";
 import { useRouter } from "expo-router";
 import * as Updates from "expo-updates";
 import { useEffect, useState } from "react";
@@ -14,8 +14,7 @@ export default function Index() {
   const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
-    // নেটওয়ার্ক কানেকশন লিসেনার সেটআপ
-    const unsubscribe = NetInfo.addEventListener(state => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
       setIsConnected(state.isConnected);
     });
 
@@ -24,15 +23,16 @@ export default function Index() {
 
   async function checkForUpdates() {
     if (__DEV__) {
-      // ডেভেলপমেন্ট মোডে আপডেট চেক করবে না
-      checkFirstInstall();
+      setTimeout(() => {
+        checkFirstInstall();
+      }, 2000);
       return;
     }
 
-    // ইন্টারনেট না থাকলে আপডেট চেক স্কিপ করুন
     if (!isConnected) {
-      console.log("No internet connection, skipping update check");
-      checkFirstInstall();
+      setTimeout(() => {
+        checkFirstInstall();
+      }, 2000);
       return;
     }
 
@@ -47,19 +47,23 @@ export default function Index() {
         setTimeout(async () => {
           setUpdateStatus("downloading");
           setUpdateText("আপডেট ডাউনলোড হচ্ছে...");
-          
+
           await Updates.fetchUpdateAsync();
 
           setUpdateStatus("installing");
           setUpdateText("আপডেট ইনস্টল হচ্ছে...");
           await Updates.reloadAsync();
-        }, 2000); 
+        }, 2000);
       } else {
-        checkFirstInstall();
+        setTimeout(() => {
+          checkFirstInstall();
+        }, 2000);
       }
     } catch (error) {
       console.error("Error checking for updates:", error);
-      checkFirstInstall();
+      setTimeout(() => {
+        checkFirstInstall();
+      }, 2000);
     }
   }
 
@@ -79,7 +83,7 @@ export default function Index() {
 
   useEffect(() => {
     checkForUpdates();
-  }, [isConnected]); // isConnected পরিবর্তন হলে আবার চেক করবে
+  }, [isConnected]);
 
   return (
     <View
@@ -140,21 +144,24 @@ export default function Index() {
             borderRadius: 5,
           }}
         >
-          {updateStatus !== "checked" && updateStatus !== "downloading" && updateStatus !== "installing" ? (
+          {updateStatus !== "checked" &&
+          updateStatus !== "downloading" &&
+          updateStatus !== "installing" ? (
             <ActivityIndicator size={30} color="#037764" />
           ) : (
             <Ionicons name="checkmark-circle" size={30} color="#037764" />
           )}
           <Text
-              style={{
-                fontFamily: "bangla_medium",
-                color: "#037764",
-                padding: 5,
-              }}
-            >
-              {updateText}
-            </Text>
-            {updateStatus === 'downloading' && <Text
+            style={{
+              fontFamily: "bangla_medium",
+              color: "#037764",
+              padding: 5,
+            }}
+          >
+            {updateText}
+          </Text>
+          {updateStatus === "downloading" && (
+            <Text
               style={{
                 fontSize: 12,
                 fontFamily: "bangla_regular",
@@ -162,8 +169,10 @@ export default function Index() {
                 padding: 5,
               }}
             >
-              ইন্টারনেট সংযোগ চালু রাখুন। আপডেট ডাউনলোড হতে কিছু সময় লাগতে পারে। আপডেট সম্পন্ন হলে এপটি স্বয়ংক্রিয়ভাবে রিস্টার্ট হবে।
-            </Text>}
+              ইন্টারনেট সংযোগ চালু রাখুন। আপডেট ডাউনলোড হতে কিছু সময় লাগতে পারে।
+              আপডেট সম্পন্ন হলে এপটি স্বয়ংক্রিয়ভাবে রিস্টার্ট হবে।
+            </Text>
+          )}
         </View>
       )}
       <View
