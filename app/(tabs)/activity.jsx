@@ -6,10 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Dimensions,
 } from "react-native";
-
-const { width } = Dimensions.get('window');
 
 const activityIcons = {
   salat: require("../../assets/images/activity/salat.png"),
@@ -22,94 +19,148 @@ const activityIcons = {
   checklist: require("../../assets/images/activity/checklist.png"),
 };
 
-export default function Prayer() {
+export default function Activity() {
   const router = useRouter();
-  const activities = [
+  
+  const sections = [
     {
-      name: "সালাত",
-      iconKey: "salat",
-      route: "/pages/prayer",
+      title: "ইবাদত",
+      data: [
+        {
+          name: "সালাত",
+          iconKey: "salat",
+          route: "/pages/prayer",
+          description: "নামাজের সময়সূচী এবং ট্র্যাকিং",
+          color: "#10B981"
+        },
+        {
+          name: "দরুদ",
+          iconKey: "tasbih",
+          route: "/pages/darood",
+          description: "দরুদ শরীফ পাঠ এবং গণনা",
+          color: "#F59E0B"
+        },
+        {
+          name: "ইস্তেগফার",
+          iconKey: "tasbih",
+          route: "/pages/istighfar",
+          description: "ইস্তেগফার পাঠ এবং রেকর্ড",
+          color: "#06B6D4"
+        },
+        {
+          name: "তাসবিহ",
+          iconKey: "tasbih",
+          route: "/pages/tasbih",
+          description: "তাসবিহ গণনা এবং ট্র্যাকিং",
+          color: "#84CC16"
+        },
+      ]
     },
     {
-      name: "কুরআন পড়া",
-      iconKey: "quran",
-      route: "/pages/quran-read",
+      title: "কুরআন ও হাদিস",
+      data: [
+        {
+          name: "কুরআন পড়া",
+          iconKey: "quran",
+          route: "/pages/quran-read",
+          description: "কুরআন তিলাওয়াত এবং অধ্যায়",
+          color: "#3B82F6"
+        },
+        {
+          name: "হাদিস পড়া",
+          iconKey: "hadith",
+          route: "/pages/hadith-read",
+          description: "দৈনিক হাদিস পড়া এবং শেয়ারিং",
+          color: "#8B5CF6"
+        },
+      ]
     },
     {
-      name: "হাদিস পড়া",
-      iconKey: "hadith",
-      route: "/pages/hadith-read",
-    },
-    {
-      name: "দরুদ",
-      iconKey: "tasbih",
-      route: "/pages/darood",
-    },
-    {
-      name: "ইস্তেগফার",
-      iconKey: "tasbih",
-      route: "/pages/istighfar",
-    },
-    {
-      name: "তাসবিহ",
-      iconKey: "tasbih",
-      route: "/pages/tasbih",
-    },
-    {
-      name: "ভালো মন্দ কাজ",
-      iconKey: "good_job",
-      route: "/pages/good-bad-job",
-    },
-    {
-      name: "দান সদকা",
-      iconKey: "donation",
-      route: "/pages/donation",
-    },
-    {
-      name: "শুক্রবার আমল",
-      iconKey: "friday",
-      route: "/pages/friday-amol",
-    },
-    {
-      name: "দৈনিক কর্মতালিকা",
-      iconKey: "checklist",
-      route: "/pages/todo",
-    },
+      title: "দৈনিক আমল",
+      data: [
+        {
+          name: "ভালো মন্দ কাজ",
+          iconKey: "good_job",
+          route: "/pages/good-bad-job",
+          description: "দৈনিক ভালো-মন্দ কাজের রেকর্ড",
+          color: "#EC4899"
+        },
+        {
+          name: "দান সদকা",
+          iconKey: "donation",
+          route: "/pages/donation",
+          description: "দান-সদকার হিসাব এবং ট্র্যাকিং",
+          color: "#F97316"
+        },
+        {
+          name: "শুক্রবার আমল",
+          iconKey: "friday",
+          route: "/pages/friday-amol",
+          description: "শুক্রবারের বিশেষ আমলসমূহ",
+          color: "#6366F1"
+        },
+        {
+          name: "দৈনিক কর্মতালিকা",
+          iconKey: "checklist",
+          route: "/pages/todo",
+          description: "দৈনিক কাজের চেকলিস্ট",
+          color: "#14B8A6"
+        },
+      ]
+    }
   ];
 
-  const itemWidth = (width - 48) / 3; 
+  const ListItem = ({ item }) => {
+    const handlePress = () => {
+      router.push(item.route);
+    };
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.listItem,
+          { 
+            borderLeftWidth: 4,
+            borderLeftColor: item.color,
+          }
+        ]}
+        onPress={handlePress}
+        activeOpacity={0.8}
+      >
+        <View style={styles.itemContent}>
+          <View style={[styles.iconContainer, { backgroundColor: `${item.color}20` }]}>
+            <Image 
+              source={activityIcons[item.iconKey]} 
+              style={styles.listIcon}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.listItemText}>{item.name}</Text>
+            <Text style={styles.descriptionText}>{item.description}</Text>
+          </View>
+          <View style={styles.arrowContainer}>
+            <Text style={[styles.arrow, { color: item.color }]}>›</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={activities}
-        numColumns={3}
-        renderItem={({ item, index }) => (
-          <View style={[
-            styles.itemWrapper,
-            { 
-              width: itemWidth,
-              marginLeft: index % 3 === 0 ? 16 : 8, 
-              marginRight: index % 3 === 2 ? 16 : 0,
-            }
-          ]}>
-            <TouchableOpacity
-              style={styles.gridItem}
-              onPress={() => router.push(item.route)}
-            >
-              <View style={styles.itemContainer}>
-                <Image 
-                  source={activityIcons[item.iconKey]} 
-                  style={styles.icon} 
-                  resizeMode="contain"
-                />
-                <Text numberOfLines={2} style={styles.itemText}>{item.name}</Text>
-              </View>
-            </TouchableOpacity>
+        data={sections}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{item.title}</Text>
+            {item.data.map((activity, index) => (
+              <ListItem key={index} item={activity} />
+            ))}
           </View>
         )}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.gridContainer}
+        contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -119,42 +170,66 @@ export default function Prayer() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
     backgroundColor: '#f8fafc',
   },
-  gridContainer: {
-    paddingBottom: 16,
+  listContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
-  itemWrapper: {
-    marginBottom: 16,
+  sectionContainer: {
+    marginBottom: 20,
   },
-  gridItem: {
-    width: '100%',
-    aspectRatio: 1,
+  sectionTitle: {
+    fontFamily: "bangla_bold",
+    fontSize: 17,
+    color: "#037764",
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  listItem: {
     backgroundColor: "#ffffff",
-    borderRadius: 12,
+    borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 2,
-  },
-  itemContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 12,
-  },
-  icon: {
-    height: 40,
-    width: 40,
+    elevation: 1,
     marginBottom: 10,
   },
-  itemText: {
+  itemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+  },
+  iconContainer: {
+    padding: 10,
+    borderRadius: 12,
+    marginRight: 16,
+  },
+  listIcon: {
+    height: 28,
+    width: 28,
+    tintColor: '#037764',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  listItemText: {
+    fontFamily: "bangla_bold",
+    color: "#1f2937",
+    marginBottom: 4,
+  },
+  descriptionText: {
     fontFamily: "bangla_regular",
-    textAlign: "center",
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#333",
+    fontSize: 12,
+    color: "#6b7280",
+    lineHeight: 16,
+  },
+  arrowContainer: {
+    marginLeft: 8,
+  },
+  arrow: {
+    fontSize: 28,
+    fontWeight: "bold",
   },
 });

@@ -1,7 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,6 +16,7 @@ import getAddressString from "../../../utils/getAddressString";
 
 export default function AskLocation() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [locationLoading, setLocationLoading] = useState(false);
   const [continueLoading, setContinueLoading] = useState(false);
   const [location, setLocation] = useState(null);
@@ -52,7 +53,7 @@ export default function AskLocation() {
       }
     };
     loadUserData()
-  });
+  },[]);
 
   const getLocationPermission = async () => {
     setLocationLoading(true);
@@ -152,7 +153,11 @@ export default function AskLocation() {
 
     setContinueLoading(true);
     try {
-      router.push("/pages/intro/ask_salah_calculation");
+      if (params.init === "no") {
+        router.replace("/(tabs)/user");
+      } else {
+        router.push("/pages/intro/ask_salah_calculation");
+      }
     } catch (error) {
       console.error("Navigation error:", error);
       Alert.alert(
@@ -163,7 +168,7 @@ export default function AskLocation() {
       setContinueLoading(false);
     }
   };
-
+  console.log(params)
   return (
     <View
       style={styles.container}

@@ -11,7 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export default function AskPrayerYear() {
@@ -35,7 +35,7 @@ export default function AskPrayerYear() {
           const parsedAge = parseInt(userData.age);
           setAge(parsedAge);
           setPrayerAge(Math.max(0, parsedAge - 15));
-          setPrayerYears(userData.prayerYears)
+          setPrayerYears(userData.prayerYears);
         } else {
           if (params.age) {
             const parsedAge = parseInt(params.age);
@@ -51,7 +51,7 @@ export default function AskPrayerYear() {
         console.error("Error loading user data:", error);
       }
     };
-    loadUserData()
+    loadUserData();
   }, [params.age]);
 
   const savePrayerData = async () => {
@@ -118,7 +118,11 @@ export default function AskPrayerYear() {
             onPress: async () => {
               try {
                 await savePrayerData();
-                router.push("/pages/intro/ask_location");
+                if (params.init === "no") {
+                  router.replace("/(tabs)/user");
+                } else {
+                  router.push("/pages/intro/ask_location");
+                }
               } catch (error) {
                 console.error("Error saving prayer data:", error);
                 Alert.alert("ত্রুটি", "ডেটা সংরক্ষণ করতে সমস্যা হয়েছে");
@@ -132,18 +136,22 @@ export default function AskPrayerYear() {
 
     try {
       await savePrayerData();
-      router.push("/pages/intro/ask_location");
+      if (params.init === "no") {
+        router.replace("/(tabs)/user");
+      } else {
+        router.push("/pages/intro/ask_location");
+      }
     } catch (error) {
       console.error("Error saving prayer data:", error);
       Alert.alert("ত্রুটি", "ডেটা সংরক্ষণ করতে সমস্যা হয়েছে");
     }
   };
-
+  console.log(params.init);
   return (
     <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.container}
-        >
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
       <View style={styles.mainContent}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.title}>নামাজের তথ্য</Text>
@@ -165,10 +173,16 @@ export default function AskPrayerYear() {
           ) : (
             <>
               <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>ইসলামিক বিধান সম্পর্কে জানুন</Text>
-                
+                <Text style={styles.infoTitle}>
+                  ইসলামিক বিধান সম্পর্কে জানুন
+                </Text>
+
                 <View style={styles.infoItem}>
-                  <Ionicons name="information-circle" size={18} color="#166534" />
+                  <Ionicons
+                    name="information-circle"
+                    size={18}
+                    color="#166534"
+                  />
                   <Text style={styles.infoText}>
                     ইসলামিক শরীয়ত অনুযায়ী নামাজ ফরজ হয় বালেগ হওয়ার পর থেকে
                   </Text>
@@ -191,19 +205,24 @@ export default function AskPrayerYear() {
                 <View style={styles.infoItem}>
                   <Ionicons name="book" size={18} color="#166534" />
                   <Text style={styles.infoText}>
-                    &quot;সাত বছর বয়সে তোমরা তোমাদের সন্তানকে নামাজ পড়তে বলবে, আর দশ বছর বয়সে পড়তে না চাইলে শাস্তি দেবে।&quot; (আবু দাউদ, তিরমিজি){"\n"}অর্থাৎ, ৭ বছর থেকে অভ্যাস করানো এবং ১০ বছর থেকে কঠোরভাবে নিয়মিত নামাজ পড়তে বাধ্য করা — যাতে বালেগ হওয়ার পর নামাজ বাদ না পড়ে।
+                    &quot;সাত বছর বয়সে তোমরা তোমাদের সন্তানকে নামাজ পড়তে বলবে,
+                    আর দশ বছর বয়সে পড়তে না চাইলে শাস্তি দেবে।&quot; (আবু দাউদ,
+                    তিরমিজি){"\n"}অর্থাৎ, ৭ বছর থেকে অভ্যাস করানো এবং ১০ বছর
+                    থেকে কঠোরভাবে নিয়মিত নামাজ পড়তে বাধ্য করা — যাতে বালেগ
+                    হওয়ার পর নামাজ বাদ না পড়ে।
                   </Text>
                 </View>
 
                 <View style={styles.highlightSection}>
                   <Text style={styles.highlightText}>
-                    আপনার বর্তমান বয়স: {age.toLocaleString('bn-BD')} বছর
+                    আপনার বর্তমান বয়স: {age.toLocaleString("bn-BD")} বছর
                   </Text>
                   <Text style={styles.highlightText}>
                     নামাজ ফরজ হওয়ার বয়স: ১৫ বছর
                   </Text>
                   <Text style={styles.highlightText}>
-                    আপনার নামাজ পড়ার বয়স: {prayerAge.toLocaleString('bn-BD')} বছর
+                    আপনার নামাজ পড়ার বয়স: {prayerAge.toLocaleString("bn-BD")}{" "}
+                    বছর
                   </Text>
                   <Text style={styles.smallText}>
                     (হিসাব করা হয়েছে: {today.toLocaleDateString("bn-BD")}{" "}
@@ -244,8 +263,8 @@ export default function AskPrayerYear() {
                 <View style={styles.warningCard}>
                   <Ionicons name="warning" size={24} color="#b45309" />
                   <Text style={styles.warningText}>
-                    আপনার বয়স ১৫ বছরের কম হওয়ায় নামাজ এখনো আপনার উপর ফরজ হয়নি। 
-                    তবে নামাজের অভ্যাস গড়ে তুলতে পারেন।
+                    আপনার বয়স ১৫ বছরের কম হওয়ায় নামাজ এখনো আপনার উপর ফরজ
+                    হয়নি। তবে নামাজের অভ্যাস গড়ে তুলতে পারেন।
                   </Text>
                 </View>
               )}

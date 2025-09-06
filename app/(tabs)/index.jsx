@@ -1,95 +1,24 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 import { useFocusEffect } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
 import { useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
-import { Animated, ScrollView, StyleSheet, Text, View } from "react-native";
-import { GestureHandlerRootView, Swipeable } from "react-native-gesture-handler";
-import PrayerTimeView from "../../components/PrayerTimeView";
-import DaroodCalculation from "../../components/calculation/DaroodCalculation";
-import DonationCalculation from "../../components/calculation/DonationCalculation";
-import FridayAmolCalculation from "../../components/calculation/FridayAmolCalculation";
-import HadithCalculation from "../../components/calculation/HadithCalculation";
-import IstighfarCalculation from "../../components/calculation/IstighfarCalculation";
-import JobCalculation from "../../components/calculation/JobCalculation";
-import QuranCalculation from "../../components/calculation/QuranCalculation";
-import SalahCalculation from "../../components/calculation/SalahCalculation";
-import TasbihCalculation from "../../components/calculation/TasbihCalculation";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Calculation from "../../components/calculation/Calculation";
 import JammatWarning from "../../components/prayer/JamaatWarning";
+import PrayerTimeView from "../../components/prayer/PrayerTimeView";
+import calculatePrayerSlots from "../../utils/calculatePrayerSlots";
+
 const APP_DIR = FileSystem.documentDirectory + "app_dir";
-
-// Swipeable Calculation Component
-const SwipeableCalculation = ({ children, onSwipeLeft, onSwipeRight, enabled = true }) => {
-  const swipeableRef = useRef(null);
-  
-  const renderLeftActions = (progress, dragX) => {
-    const trans = dragX.interpolate({
-      inputRange: [0, 50],
-      outputRange: [-50, 0],
-      extrapolate: 'clamp',
-    });
-    
-    return (
-      <Animated.View
-        style={[
-          styles.swipeAction,
-          styles.swipeLeftAction,
-          { transform: [{ translateX: trans }] }
-        ]}
-      >
-        <Text style={styles.swipeActionText}>আপডেট</Text>
-      </Animated.View>
-    );
-  };
-
-  const renderRightActions = (progress, dragX) => {
-    const trans = dragX.interpolate({
-      inputRange: [-50, 0],
-      outputRange: [0, -50],
-      extrapolate: 'clamp',
-    });
-    
-    return (
-      <Animated.View
-        style={[
-          styles.swipeAction,
-          { transform: [{ translateX: trans }] }
-        ]}
-      >
-        <Text style={styles.swipeActionText}>বিস্তারিত</Text>
-      </Animated.View>
-    );
-  };
-
-  if (!enabled) {
-    return children;
-  }
-
-  return (
-    <Swipeable
-      ref={swipeableRef}
-      renderLeftActions={renderLeftActions}
-      renderRightActions={renderRightActions}
-      onSwipeableOpen={(direction) => {
-        if (direction === 'left' && onSwipeLeft) {
-          onSwipeLeft();
-        } else if (direction === 'right' && onSwipeRight) {
-          onSwipeRight();
-        }
-        setTimeout(() => swipeableRef.current?.close(), 300);
-      }}
-      friction={2}
-      leftThreshold={30}
-      rightThreshold={30}
-    >
-      {children}
-    </Swipeable>
-  );
-};
 
 export default function Index() {
   const [data, setData] = useState(null);
+  const [prayerData, setPrayerData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isOnline, setIsOnline] = useState(true);
   const router = useRouter();
 
   const data_files = {
@@ -103,6 +32,49 @@ export default function Index() {
     friday: "friday_data.json",
     goodBadJob: "good_bad_job_data.json",
     donation: "donation_data.json",
+  };
+
+  // নেটওয়ার্ক স্ট্যাটাস চেক
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsOnline(state.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // প্রার্থনার সময় ফেচ করার ফাংশন
+  const fetchPrayerTimes = async (lat, lon) => {
+    try {
+      const response = await fetch(
+        `https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=3`
+      );
+      const data = await response.json();
+      const timings = data.data.timings;
+
+      // AsyncStorage-এ সেভ করুন
+      const dataToSave = {
+        timings,
+        lastUpdated: new Date().toISOString(),
+      };
+      await AsyncStorage.setItem("prayerTimes", JSON.stringify(dataToSave));
+
+      return timings;
+    } catch (error) {
+      console.error("Error fetching prayer times:", error);
+      return null;
+    }
+  };
+
+  // সেভ করা প্রার্থনার সময় পড়ুন
+  const getSavedPrayerTimes = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("prayerTimes");
+      return jsonValue ? JSON.parse(jsonValue) : null;
+    } catch (error) {
+      console.error("Error reading prayer times:", error);
+      return null;
+    }
   };
 
   const checkFiles = async () => {
@@ -122,7 +94,39 @@ export default function Index() {
           filesData[key] = fileInfo.exists ? JSON.parse(await FileSystem.readAsStringAsync(filePath)) : [];
         })
       );
+      
       setData(filesData);
+
+      // প্রার্থনার সময় হ্যান্ডেল করুন
+      if (filesData.user && filesData.user.location) {
+        const { latitude, longitude } = filesData.user.location;
+        
+        let prayerTimesData = null;
+        let lastUpdated = null;
+        
+        if (isOnline) {
+          prayerTimesData = await fetchPrayerTimes(latitude, longitude);
+          lastUpdated = new Date().toISOString();
+        }
+        
+        if (!prayerTimesData) {
+          const savedData = await getSavedPrayerTimes();
+          if (savedData) {
+            prayerTimesData = savedData.timings;
+            lastUpdated = savedData.lastUpdated;
+          }
+        }
+
+        if (prayerTimesData) {
+          const slots = calculatePrayerSlots(prayerTimesData);
+          setPrayerData({
+            timings: prayerTimesData,
+            slots,
+            location: filesData.user.location,
+            lastUpdated
+          });
+        }
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -130,7 +134,7 @@ export default function Index() {
     }
   };
 
-  useFocusEffect(useCallback(() => { checkFiles(); }, []));
+  useFocusEffect(useCallback(() => { checkFiles(); }, [isOnline]));
 
   const handleSwipeLeft = (screen) => {
     router.push(`/pages/${screen}`);
@@ -140,80 +144,25 @@ export default function Index() {
     router.push(`/pages/amol-nama/${screen}`);
   };
 
-  if (loading) return <View style={styles.container}><Text>Loading...</Text></View>;
+  if (loading) return <View style={styles.container}><ActivityIndicator size="large" /></View>;
   if (error) return <View style={styles.container}><Text style={styles.error}>Error: {error}</Text></View>;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ScrollView style={styles.container}>
-        <View style={{ paddingBottom: 40 }}>
-          <PrayerTimeView />
-          <JammatWarning salah={data.salah} />
-          
-          {/* Swipeable Calculation Components */}
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('prayer')}
-            onSwipeRight={() => handleSwipeRight('prayer')}
-          >
-            <SalahCalculation salah={data.salah} />
-          </SwipeableCalculation>
-
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('quran-read')}
-            onSwipeRight={() => handleSwipeRight('quran-read')}
-          >
-            <QuranCalculation quran={data.quran} />
-          </SwipeableCalculation>
-
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('hadith-read')}
-            onSwipeRight={() => handleSwipeRight('hadith-read')}
-          >
-            <HadithCalculation hadith={data.hadith} />
-          </SwipeableCalculation>
-
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('istighfar')}
-            onSwipeRight={() => handleSwipeRight('istighfar')}
-          >
-            <IstighfarCalculation istighfar={data.istighfar} />
-          </SwipeableCalculation>
-
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('donation')}
-            onSwipeRight={() => handleSwipeRight('donation')}
-          >
-            <DonationCalculation donation={data.donation} />
-          </SwipeableCalculation>
-
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('darood')}
-            onSwipeRight={() => handleSwipeRight('darood')}
-          >
-            <DaroodCalculation darood={data.darood} />
-          </SwipeableCalculation>
-
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('good-bad-job')}
-            onSwipeRight={() => handleSwipeRight('good-bad-job')}
-          >
-            <JobCalculation goodBadJob={data.goodBadJob} />
-          </SwipeableCalculation>
-
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('tasbih')}
-            onSwipeRight={() => handleSwipeRight('tasbih')}
-          >
-            <TasbihCalculation tasbih={data.tasbih} />
-          </SwipeableCalculation>
-
-          <SwipeableCalculation 
-            onSwipeLeft={() => handleSwipeLeft('friday-amol')}
-            onSwipeRight={() => handleSwipeRight('friday-amol')}
-          >
-            <FridayAmolCalculation friday={data.friday} />
-          </SwipeableCalculation>
-        </View>
+        <PrayerTimeView 
+          prayerData={prayerData} 
+          isOnline={isOnline}
+        />
+        {data && <JammatWarning salah={data.salah} />}
+        
+        {data && (
+          <Calculation 
+            data={data} 
+            onSwipeLeft={handleSwipeLeft}
+            onSwipeRight={handleSwipeRight}
+          />
+        )}
       </ScrollView>
     </GestureHandlerRootView>
   );
@@ -224,15 +173,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8fafc",
     padding: 10,
-  },
-  swipeAction: {
-    width: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  swipeActionText: {
-    fontSize: 12,
-    fontFamily: 'bangla_bold',
   },
   error: {
     color: 'red',

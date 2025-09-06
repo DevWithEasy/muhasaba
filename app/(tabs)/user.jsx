@@ -6,12 +6,14 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
+import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -22,6 +24,8 @@ export default function Profile() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [checkingPermission, setCheckingPermission] = useState(true);
   const router = useRouter();
 
   const PROFILE_FILE = `${FileSystem.documentDirectory}app_dir/user_data.json`;
@@ -37,16 +41,37 @@ export default function Profile() {
         const fileContents = await FileSystem.readAsStringAsync(PROFILE_FILE);
         const data = JSON.parse(fileContents);
         setProfileData(data);
+
+        // নোটিফিকেশন পারমিশন চেক করুন
+        const { status } = await Notifications.getPermissionsAsync();
+        const hasPermission = status === "granted";
+
+        // UI আপডেট করুন
+        setNotificationsEnabled(hasPermission);
       } catch (err) {
         console.error("প্রোফাইল ডাটা লোড করতে সমস্যা:", err);
         setError(err.message);
       } finally {
         setLoading(false);
+        setCheckingPermission(false);
       }
     };
 
     loadProfileData();
   }, []);
+
+  // নোটিফিকেশন পারমিশন হ্যান্ডলার
+  const toggleNotifications = async (value) => {
+    setNotificationsEnabled(value);
+
+    if (value) {
+      const { status } = await Notifications.requestPermissionsAsync();
+      const permissionGranted = status === "granted";
+      setNotificationsEnabled(permissionGranted);
+    } else {
+      setNotificationsEnabled(false);
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "সেট করা হয়নি";
@@ -90,7 +115,9 @@ export default function Profile() {
           <View style={styles.avatar}>
             <FontAwesome name="user" size={40} color="#037764" />
           </View>
-          <Text style={styles.userName}>{profileData?.name || "ব্যবহারকারী"}</Text>
+          <Text style={styles.userName}>
+            {profileData?.name || "ব্যবহারকারী"}
+          </Text>
           <Text style={styles.userSince}>
             সদস্য {formatDate(profileData?.createdAt)} থেকে
           </Text>
@@ -100,7 +127,15 @@ export default function Profile() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ব্যক্তিগত তথ্য</Text>
 
-          <TouchableOpacity style={styles.infoCard} onPress={() => router.push("/pages/intro/ask_age")}>
+          <TouchableOpacity
+            style={styles.infoCard}
+            onPress={() =>
+              router.push({
+                pathname: "/pages/intro/ask_age",
+                params: { init: "no" },
+              })
+            }
+          >
             <View style={styles.infoRow}>
               <Ionicons name="person-outline" size={20} color="#037764" />
               <Text style={styles.infoLabel}>নাম:</Text>
@@ -133,7 +168,12 @@ export default function Profile() {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => router.push("/pages/intro/ask_prayer_year")}
+            onPress={() =>
+              router.push({
+                pathname: "/pages/intro/ask_prayer_year",
+                params: { init: "no" },
+              })
+            }
           >
             <View style={styles.settingIcon}>
               <MaterialIcons name="calculate" size={20} color="#037764" />
@@ -155,7 +195,12 @@ export default function Profile() {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => router.push("/pages/intro/ask_salah_calculation")}
+            onPress={() =>
+              router.push({
+                pathname: "/pages/intro/ask_salah_calculation",
+                params: { init: "no" },
+              })
+            }
           >
             <View style={styles.settingIcon}>
               <MaterialIcons name="calculate" size={20} color="#037764" />
@@ -175,7 +220,12 @@ export default function Profile() {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => router.push("/pages/intro/ask_location")}
+            onPress={() =>
+              router.push({
+                pathname: "/pages/intro/ask_location",
+                params: { init: "no" },
+              })
+            }
           >
             <View style={styles.settingIcon}>
               <MaterialIcons name="location-on" size={20} color="#037764" />
@@ -183,10 +233,44 @@ export default function Profile() {
             <View style={{ flex: 1 }}>
               <Text style={styles.settingText}>বর্তমান অবস্থান</Text>
               <Text numberOfLines={1} style={styles.valueText}>
-                {getAddressString(profileData?.location?.address) || "সেট করা হয়নি"}
+                {getAddressString(profileData?.location?.address) ||
+                  "সেট করা হয়নি"}
               </Text>
             </View>
           </TouchableOpacity>
+        </View>
+
+        {/* নোটিফিকেশন সেটিংস সেকশন */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>নোটিফিকেশন সেটিংস</Text>
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingIcon}>
+              <Ionicons
+                name="notifications-outline"
+                size={20}
+                color="#037764"
+              />
+            </View>
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingText}>নোটিফিকেশন</Text>
+              <Text style={styles.valueText}>
+                {notificationsEnabled
+                  ? "নামাজের রিমাইন্ডার ও গুরুত্বপূর্ণ তথ্য পাবেন"
+                  : "নামাজের রিমাইন্ডার ও গুরুত্বপূর্ণ তথ্য পেতে নোটিফিকেশন অন করুন"}
+              </Text>
+            </View>
+            {checkingPermission ? (
+              <ActivityIndicator size="small" color="#037764" />
+            ) : (
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={toggleNotifications}
+                trackColor={{ false: "#767577", true: "#03776430" }}
+                thumbColor={notificationsEnabled ? "#037764" : "#f4f3f4"}
+              />
+            )}
+          </View>
         </View>
 
         {/* ডাটা ম্যানেজমেন্ট সেকশন */}
@@ -194,7 +278,7 @@ export default function Profile() {
           <Text style={styles.sectionTitle}>ডাটা ব্যবস্থাপনা</Text>
 
           <TouchableOpacity
-            style={[styles.settingItem,{marginBottom : 10}]}
+            style={[styles.settingItem, { marginBottom: 10 }]}
             onPress={() => router.push("/pages/backup")}
           >
             <View style={styles.settingIcon}>
@@ -344,8 +428,8 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   settingItem: {
-    flexDirection : 'row',
-    alignContent : 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "white",
     padding: 16,
     borderRadius: 8,
@@ -357,6 +441,7 @@ const styles = StyleSheet.create({
   },
   settingTextContainer: {
     flex: 1,
+    marginRight: 10,
   },
   settingText: {
     fontFamily: "bangla_bold",
@@ -369,6 +454,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#757575",
     lineHeight: 18,
-    flexShrink: 1,  // এই লাইনটি যোগ করুন
+    flexShrink: 1,
   },
 });

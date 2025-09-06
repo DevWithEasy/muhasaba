@@ -1,109 +1,16 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as FileSystem from "expo-file-system";
-import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  NetInfo,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import calculatePrayerSlots from "../utils/calculatePrayerSlots";
-import convertToBanglaNumbers from "../utils/convertToBanglaNumber";
-import getAddressString from "../utils/getAddressString";
+import { StyleSheet, Text, View } from "react-native";
+import getAddressString from "../../utils/getAddressString";
+import convertToBanglaNumbers from "../../utils/convertToBanglaNumber";
 
-export default function PrayerTimeView() {
-  const [location, setLocation] = useState(null);
-  const [prayerTimes, setPrayerTimes] = useState(null);
-  const [prayerSlots, setPrayerSlots] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function PrayerTimeView({ prayerData, isOnline }) {
   const [currentSlot, setCurrentSlot] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const [isOnline, setIsOnline] = useState(true);
-  const router = useRouter();
 
-  // Check network status
-  const checkNetworkStatus = async () => {
-    const netInfoState = await NetInfo.fetch();
-    setIsOnline(netInfoState.isConnected);
-  };
-
-  // Retrieve user location from AsyncStorage
-  const getSavedLocation = async () => {
-    try {
-      const appDir = `${FileSystem.documentDirectory}app_dir`;
-      const fileUri = `${appDir}/user_data.json`;
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-
-      if (fileInfo.exists) {
-        const fileContent = await FileSystem.readAsStringAsync(fileUri);
-        const userData = JSON.parse(fileContent);
-        if (userData.location) {
-          return userData.location;
-        }
-      }
-      return null;
-    } catch (error) {
-      console.error("Error reading location:", error);
-      return null;
-    }
-  };
-
-  // Save prayer times to AsyncStorage with timestamp
-  const savePrayerTimes = async (timings) => {
-    try {
-      const dataToSave = {
-        timings,
-        lastUpdated: new Date().toISOString(),
-      };
-      await AsyncStorage.setItem("prayerTimes", JSON.stringify(dataToSave));
-    } catch (error) {
-      console.error("Error saving prayer times:", error);
-    }
-  };
-
-  // Get saved prayer times from AsyncStorage
-  const getSavedPrayerTimes = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem("prayerTimes");
-      if (jsonValue !== null) {
-        const data = JSON.parse(jsonValue);
-        setLastUpdated(data.lastUpdated);
-        return data.timings;
-      }
-      return null;
-    } catch (error) {
-      console.error("Error reading prayer times:", error);
-      return null;
-    }
-  };
-
-  // Fetch prayer times from API
-  const fetchPrayerTimes = async (lat, lon) => {
-    try {
-      const response = await fetch(
-        `https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=3`
-      );
-      const data = await response.json();
-      const timings = data.data.timings;
-
-      setPrayerTimes(timings);
-      const slots = calculatePrayerSlots(timings);
-      setPrayerSlots(slots);
-      await savePrayerTimes(timings);
-      setLastUpdated(new Date().toISOString());
-      calculateCurrentPrayerSlot(slots);
-      return true;
-    } catch (error) {
-      console.error("Error fetching prayer times:", error);
-      return false;
-    }
-  };
-
-  // Calculate current prayer slot and remaining time
+  // বর্তমান প্রার্থনা স্লট ক্যালকুলেট করুন
   const calculateCurrentPrayerSlot = (slots) => {
+    if (!slots) return;
+
     const now = new Date();
     const currentHours = now.getHours();
     const currentMinutes = now.getMinutes();
@@ -119,12 +26,10 @@ export default function PrayerTimeView() {
       const startTimeInMinutes = startHours * 60 + startMins;
       let endTimeInMinutes = endHours * 60 + endMins;
 
-      // Handle overnight slots (like tahajjud)
       if (endTimeInMinutes < startTimeInMinutes) {
-        endTimeInMinutes += 1440; // Add 24 hours
+        endTimeInMinutes += 1440;
       }
 
-      // Check if current time is within this slot
       let currentTimeForComparison = currentTimeInMinutes;
       if (
         endTimeInMinutes > 1440 &&
@@ -147,10 +52,9 @@ export default function PrayerTimeView() {
     setTimeRemaining(remainingMinutes);
   };
 
-  // Format last updated time
+  // ফরম্যাট ফাংশনগুলো
   const formatLastUpdated = (isoString) => {
     if (!isoString) return "অজানা";
-
     const date = new Date(isoString);
     const options = {
       hour: "2-digit",
@@ -164,7 +68,6 @@ export default function PrayerTimeView() {
     return `${timeString}, ${dateString}`;
   };
 
-  // Format remaining time
   const formatTimeRemaining = (minutes) => {
     if (minutes === null || isNaN(minutes)) return "লোড হচ্ছে...";
     const hours = Math.floor(minutes / 60);
@@ -172,7 +75,6 @@ export default function PrayerTimeView() {
     return `${hours} ঘন্টা ${mins} মিনিট`;
   };
 
-  // Get prayer name in Bengali
   const getBengaliPrayerName = (name) => {
     const names = {
       fajr: "ফজর",
@@ -190,76 +92,27 @@ export default function PrayerTimeView() {
   };
 
   useEffect(() => {
-    checkNetworkStatus();
+    if (prayerData?.slots) {
+      calculateCurrentPrayerSlot(prayerData.slots);
+      
+      // প্রতি মিনিটে আপডেট
+      const interval = setInterval(() => {
+        calculateCurrentPrayerSlot(prayerData.slots);
+      }, 60000);
 
-    const loadData = async () => {
-      const savedLocation = await getSavedLocation();
-      if (!savedLocation) {
-        router.replace("/pages/intro/ask_location");
-        return;
-      }
+      return () => clearInterval(interval);
+    }
+  }, [prayerData]);
 
-      setLocation(savedLocation);
-
-      // Try to fetch new data if online
-      if (isOnline) {
-        const success = await fetchPrayerTimes(
-          savedLocation.latitude,
-          savedLocation.longitude
-        );
-        if (!success) {
-          // If online fetch fails, try to load cached data
-          const cachedTimes = await getSavedPrayerTimes();
-          if (cachedTimes) {
-            setPrayerTimes(cachedTimes);
-            const slots = calculatePrayerSlots(cachedTimes);
-            setPrayerSlots(slots);
-            calculateCurrentPrayerSlot(slots);
-          }
-        }
-      } else {
-        // Offline - load cached data
-        const cachedTimes = await getSavedPrayerTimes();
-        if (cachedTimes) {
-          setPrayerTimes(cachedTimes);
-          const slots = calculatePrayerSlots(cachedTimes);
-          setPrayerSlots(slots);
-          calculateCurrentPrayerSlot(slots);
-        }
-      }
-
-      setLoading(false);
-    };
-
-    loadData();
-
-    // Update every minute for real-time countdown
-    const interval = setInterval(() => {
-      if (prayerSlots.length > 0) {
-        calculateCurrentPrayerSlot(prayerSlots);
-      }
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [isOnline]);
-
-  if (!location || loading) {
+  if (!prayerData) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>লোড হচ্ছে...</Text>
+      <View style={styles.container}>
+        <Text>প্রার্থনার সময় লোড হচ্ছে...</Text>
       </View>
     );
   }
 
-  if (!prayerTimes) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>প্রার্থনার সময় লোড করতে সমস্যা হয়েছে</Text>
-        {!isOnline && <Text>অফলাইন মোড: ইন্টারনেট সংযোগ নেই</Text>}
-      </View>
-    );
-  }
+  const { timings, location, lastUpdated, slots } = prayerData;
 
   return (
     <View style={styles.container}>
@@ -316,7 +169,7 @@ export default function PrayerTimeView() {
           marginTop: 8,
         }}
       >
-        {getAddressString(location.address)}
+        {location && location.address ? getAddressString(location.address) : "লোকেশন লোড হচ্ছে..."}
       </Text>
       <View
         style={{
@@ -327,24 +180,24 @@ export default function PrayerTimeView() {
       >
         <View style={{ width: "50%" }}>
           <Text style={styles.sunTimeText}>
-            সূর্যোদয়: {convertToBanglaNumbers(prayerTimes.Sunrise)}
+            সূর্যোদয়: {convertToBanglaNumbers(timings.Sunrise)}
           </Text>
           <Text style={styles.sunTimeText}>
-            সূর্যাস্ত: {convertToBanglaNumbers(prayerTimes.Sunset)}
+            সূর্যাস্ত: {convertToBanglaNumbers(timings.Sunset)}
           </Text>
         </View>
         <View style={{ width: "50%" }}>
           <Text style={styles.sunTimeText}>
-            সেহেরি: {convertToBanglaNumbers(prayerTimes.Fajr)}
+            সেহেরি: {convertToBanglaNumbers(timings.Fajr)}
           </Text>
           <Text style={styles.sunTimeText}>
-            ইফতার: {convertToBanglaNumbers(prayerTimes.Maghrib)}
+            ইফতার: {convertToBanglaNumbers(timings.Maghrib)}
           </Text>
         </View>
       </View>
 
       <View style={styles.prayerTimesContainer}>
-        {prayerSlots
+        {slots
           .filter((slot) =>
             ["fajr", "dhuhr", "asr", "maghrib", "isha"].includes(slot.name)
           )

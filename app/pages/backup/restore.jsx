@@ -30,8 +30,6 @@ export default function Restore() {
         copyToCacheDirectory: true,
       });
 
-      console.log("Document picker result:", result);
-
       if (result.type === "cancel") {
         return;
       }

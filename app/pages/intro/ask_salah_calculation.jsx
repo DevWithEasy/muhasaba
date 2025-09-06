@@ -2,7 +2,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 import * as FileSystem from "expo-file-system";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -41,6 +41,7 @@ const asrSchools = [
 
 export default function AskSalahCalculation() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [method, setMethod] = useState(1);
   const [school, setSchool] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -57,8 +58,12 @@ export default function AskSalahCalculation() {
           const fileContent = await FileSystem.readAsStringAsync(fileUri);
           const userData = JSON.parse(fileContent);
           if (userData.location) {
-            setMethod(userData?.claculation?.method ? userData.claculation.method : 1);
-            setSchool(userData?.claculation?.school ? userData.claculation.school : 1);
+            setMethod(
+              userData?.claculation?.method ? userData.claculation.method : 1
+            );
+            setSchool(
+              userData?.claculation?.school ? userData.claculation.school : 1
+            );
           }
         }
         setLoading(false);
@@ -155,9 +160,14 @@ export default function AskSalahCalculation() {
     try {
       setLoading(true);
       await savePreference();
-      await createSalahDataFile();
-      await AsyncStorage.setItem("is-first-install", "1");
-      router.push("/pages/intro/ask_notification");
+
+      if (params.init === "no") {
+        router.replace("/(tabs)/user");
+      } else {
+        await createSalahDataFile();
+        await AsyncStorage.setItem("is-first-install", "1");
+        router.push("/pages/intro/ask_notification");
+      }
     } catch (error) {
       Alert.alert(
         "ত্রুটি",
