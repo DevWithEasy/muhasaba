@@ -1,8 +1,8 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import ChaptersList from '../../../components/hadith/ChaptersList';
-import DownloadModal from '../../../components/hadith/DownloadModal';
+import ChaptersList from '../../../../components/hadith/ChaptersList';
+import DownloadModal from '../../../../components/hadith/DownloadModal';
 
 export default function Chapters() {
   const params = useLocalSearchParams();

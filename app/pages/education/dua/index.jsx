@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import categories from "../../../assets/data/category.json";
+import categories from "../../../../assets/data/category.json";
 
 const DUA_DIR = FileSystem.documentDirectory+'app_dir/dua';
 const DUA_URL = `https://cdn.jsdelivr.net/gh/DevWithEasy/app-file-store-repo/dua/dua_data.zip`;

@@ -11,8 +11,8 @@ import {
   Text,
   View,
 } from "react-native";
-import useSettingsStore from "../../../store/settingsStore";
-import { getJsonData } from "../../../utils/audioControllers";
+import useSettingsStore from "../../../../store/settingsStore";
+import { getJsonData } from "../../../../utils/audioControllers";
 
 export default function SettingsScreen() {
   const {

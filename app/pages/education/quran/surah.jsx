@@ -13,16 +13,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AyahItem from "../../../components/quran/AyahItem";
-import AyahLoadingScreen from "../../../components/quran/AyahLoadingScreen";
-import NoSuraModal from "../../../components/quran/NoSuraModal";
-import SuraInfo from "../../../components/quran/SuraInfo";
+import AyahItem from "../../../../components/quran/AyahItem";
+import AyahLoadingScreen from "../../../../components/quran/AyahLoadingScreen";
+import NoSuraModal from "../../../../components/quran/NoSuraModal";
+import SuraInfo from "../../../../components/quran/SuraInfo";
 import {
   checkAudioFileExist,
   getFilePath,
   getJsonData,
   getTiming,
-} from "../../../utils/audioControllers";
+} from "../../../../utils/audioControllers";
 
 const MemoizedAyahItem = memo(AyahItem);
 

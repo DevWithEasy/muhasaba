@@ -33,7 +33,7 @@ export default function DonationCalculation({ donation }) {
       onPress={() => router.push("/pages/amol-nama/donation")}
     >
       <Ionicons
-        name={todayStatus ? "checkmark-circle" : "close-circle"}
+        name={todayStatus ? "arrow-up-circle" : "arrow-down-circle"} 
         size={30}
         color={todayStatus ? "#037764" : "#f50828ff"}
       />

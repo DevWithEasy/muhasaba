@@ -24,22 +24,37 @@ export default function Education() {
     {
       name: "সালাত",
       iconKey: "salat",
-      route: "/pages/prayer",
+      route: "/pages/education/prayer",
     },
     {
       name: "কুরআন পড়া",
       iconKey: "quran",
-      route: "/pages/quran",
+      route: "/pages/education/quran",
     },
     {
       name: "হাদিস পড়া",
       iconKey: "hadith",
-      route: "/pages/hadith",
+      route: "/pages/education/hadith",
     },
     {
       name: "দোয়া",
       iconKey: "hadith",
-      route: "/pages/dua",
+      route: "/pages/education/dua",
+    },
+    {
+      name: "আসমাউল হুসনা",
+      iconKey: "hadith",
+      route: "/pages/education/asmaul-husna",
+    },
+    {
+      name: "কালিমা",
+      iconKey: "hadith",
+      route: "/pages/education/kalima",
+    },
+        {
+      name: "সালাত",
+      iconKey: "hadith",
+      route: "/pages/education/salah",
     }
   ];
 

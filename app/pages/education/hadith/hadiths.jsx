@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import convertToBanglaNumbers from "../../../utils/convertToBanglaNumber";
+import convertToBanglaNumbers from "../../../../utils/convertToBanglaNumber";
 
 export default function Hadiths() {
   const params = useLocalSearchParams();

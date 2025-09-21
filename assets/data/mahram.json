@@ -1,0 +1,234 @@
+[
+    {
+        "gender" : "পুরুষ",
+        "image" : "assets/images/mahram/male.png",
+        "list" : [
+            {
+                "name": "দাদী",
+                "isMarham" : true
+            },
+            {
+                "name": "মা/দুধ মা",
+                "isMarham" : true
+            },
+            {
+                "name": "বোন/দুধ বোন",
+                "isMarham" : true
+            },
+            {
+                "name": "শাশুড়ি",
+                "isMarham" : true
+            },
+            {
+                "name": "স্ত্রী",
+                "isMarham" : true
+            },
+            {
+                "name": "মেয়ে/দুধ মেয়ে/সৎ মেয়ে",
+                "isMarham" : true
+            },
+            {
+                "name": "ছেলের/দুধ ছেলের স্ত্রী",
+                "isMarham" : true
+            },
+            {
+                "name": "ফুপু",
+                "isMarham" : true
+            },
+            {
+                "name": "খালা",
+                "isMarham" : true
+            },
+            {
+                "name": "ভাইয়ের/বোনের মেয়ে",
+                "isMarham" : true
+            },
+            {
+                "name": "নানী",
+                "isMarham" : true
+            },
+            {
+                "name": "মায়ের খালাতো/চাচাতো/মামাতো/ফুফাতো বোন",
+                "isMarham" : false
+            },
+            {
+                "name": "চাচাতো বোন",
+                "isMarham" : false
+            },
+            {
+                "name": "ভাবী",
+                "isMarham" : false
+            },
+            {
+                "name": "বাবার খালাতো/চাচাতো/মামাতো/ফুফাতো বোন",
+                "isMarham" : false
+            },
+            {
+                "name": "চাচী",
+                "isMarham" : false
+            },
+            {
+                "name": "ফুফাতো বোন",
+                "isMarham" : false
+            },
+            {
+                "name": "খালাতো বোন",
+                "isMarham" : false
+            },
+            {
+                "name": "মামাতো বোন",
+                "isMarham" : false
+            },
+            {
+                "name": "শ্যালক/শ্যালিকার মেয়ে",
+                "isMarham" : false
+            },
+            {
+                "name": "শ্বশুর/শাশুড়ির বোন",
+                "isMarham" : false
+            },
+            {
+                "name": "শ্যালিকা",
+                "isMarham" : false
+            },
+            {
+                "name": "মামী",
+                "isMarham" : false
+            },
+            {
+                "name": "স্ত্রীর খালাতো/চাচাতো/মামাতো/ফুফাতো বোন",
+                "isMarham" : false
+            },
+            {
+                "name": "স্ত্রীর ভাবী",
+                "isMarham" : false
+            },
+            {
+                "name": "মেয়ের ননদ",
+                "isMarham" : false
+            },
+            {
+                "name": "ছেলে/মেয়ের শাশুড়ি",
+                "isMarham" : false
+            }
+        ]
+    },
+    {
+        "gender" : "মহিলা",
+        "image" : "assets/images/mahram/female.png",
+        "list" : [
+            {
+                "name": "দাদা",
+                "isMarham" : true
+            },
+            {
+                "name": "বাবা",
+                "isMarham" : true
+            },
+            {
+                "name": "ভাই",
+                "isMarham" : true
+            },
+            {
+                "name": "শ্বশুর",
+                "isMarham" : true
+            },
+            {
+                "name": "স্বামী",
+                "isMarham" : true
+            },
+            {
+                "name": "ছেলে",
+                "isMarham" : true
+            },
+            {
+                "name": "নাতী",
+                "isMarham" : true
+            },
+            {
+                "name": "চাচা",
+                "isMarham" : true
+            },
+            {
+                "name": "ভাইয়ের/বোনের ছেলে",
+                "isMarham" : true
+            },
+            {
+                "name": "নানা",
+                "isMarham" : true
+            },
+            {
+                "name": "মামা",
+                "isMarham" : false
+            },
+            {
+                "name": "মায়ের খালাতো/চাচাতো/মামাতো/ফুপাতো ভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "চাচাতো ভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "দুলাভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "বাবার খালাতো/চাচাতো/মামাতো/ফুপাতো ভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "ফুপুর স্বামী (ফুপা)",
+                "isMarham" : false
+            },
+            {
+                "name": "ফুপাতো ভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "খালাতো ভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "মামাতো ভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "ননদের ছেলে",
+                "isMarham" : false
+            },
+            {
+                "name": "শ্বশুর/শাশুড়ির ভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "দেবর/ভাসুর",
+                "isMarham" : false
+            },
+            {
+                "name": "ননদের স্বামী",
+                "isMarham" : false
+            },
+            {
+                "name": "স্বামীর খালাতো/চাচাতো/মামাতো/ফুপাতো ভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "স্বামীর দুলাভাই",
+                "isMarham" : false
+            },
+            {
+                "name": "ছেলের শ্যালক",
+                "isMarham" : false
+            },
+            {
+                "name": "ছেলে/মেয়ের শ্বশুর",
+                "isMarham" : false
+            },
+            {
+                "name": "খালার স্বামী (খালু)",
+                "isMarham" : false
+            }
+        ]
+    }
+]

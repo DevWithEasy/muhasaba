@@ -4,10 +4,10 @@ import { Stack } from "expo-router";
 import { unzipSync } from "fflate";
 import { useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import surasData from "../../../assets/data/surah.json";
-import QuranDownloadModal from "../../../components/quran/QuranDownloadModal";
-import SuraItem from "../../../components/quran/SuraItem";
-import SuraLoadingScreen from "../../../components/quran/SuraLoadingScreen";
+import surasData from "../../../../assets/data/surah.json";
+import QuranDownloadModal from "../../../../components/quran/QuranDownloadModal";
+import SuraItem from "../../../../components/quran/SuraItem";
+import SuraLoadingScreen from "../../../../components/quran/SuraLoadingScreen";
 
 const QURAN_URL = `https://cdn.jsdelivr.net/gh/DevWithEasy/app-file-store-repo/quran/quran_data.zip`;
 const QURAN_DIR = `${FileSystem.documentDirectory}app_dir/quran`;

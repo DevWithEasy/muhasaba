@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import hadithData from '../../../assets/data/books.json';
-import convertToBanglaNumbers from '../../../utils/convertToBanglaNumber';
+import hadithData from '../../../../assets/data/books.json';
+import convertToBanglaNumbers from '../../../../utils/convertToBanglaNumber';
 
 const HadithScreen = () => {
   const [books, setBooks] = useState([]);
