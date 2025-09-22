@@ -5,8 +5,6 @@ import { unzipSync } from "fflate";
 import { useState } from 'react';
 import {
   Alert,
-  Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +12,7 @@ import {
   View
 } from "react-native";
 import categories from "../../../../assets/data/category.json";
+import DuaDownloadModal from "../../../../components/dua/DuaDownloadModal"; // নতুন কম্পোনেন্ট ইম্পোর্ট
 
 const DUA_DIR = FileSystem.documentDirectory+'app_dir/dua';
 const DUA_URL = `https://cdn.jsdelivr.net/gh/DevWithEasy/app-file-store-repo/dua/dua_data.zip`;
@@ -30,24 +29,20 @@ const files = [
     'sub_category.json',
 ]
 
-// HomeScreen কম্পোনেন্ট
 export default function Index () {
   const router = useRouter();
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isCheckingFiles, setIsCheckingFiles] = useState(false);
 
-  // ফাইল চেক করার ফাংশন
   const checkFilesExist = async () => {
     setIsCheckingFiles(true);
     try {
-      // ডিরেক্টরি চেক করুন
       const dirInfo = await FileSystem.getInfoAsync(DUA_DIR);
       if (!dirInfo.exists) {
         return false;
       }
 
-      // সব ফাইল চেক করুন
       for (const file of files) {
         const filePath = `${DUA_DIR}/${file}`;
         const fileInfo = await FileSystem.getInfoAsync(filePath);
@@ -66,10 +61,8 @@ export default function Index () {
     }
   };
 
-  // ডাউনলোড ফাংশন
   const startDownload = async () => {
     try {
-      // Create base directory if it doesn't exist
       await FileSystem.makeDirectoryAsync(DUA_DIR, { intermediates: true });
 
       const downloadResumable = FileSystem.createDownloadResumable(
@@ -86,32 +79,24 @@ export default function Index () {
 
       const { uri } = await downloadResumable.downloadAsync();
 
-      // Extract zip file
       const fileData = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
       const buffer = Buffer.from(fileData, "base64");
       const files = unzipSync(buffer);
 
-      // Process files in specific order to ensure directories are created first
       const fileEntries = Object.entries(files);
 
-      // First pass: Create all directories
       for (const [fileName, content] of fileEntries) {
         if (fileName.endsWith("/")) {
-          // This is a directory
           const dirPath = `${DUA_DIR}/${fileName}`;
           await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
         }
       }
 
-      // Second pass: Write all files
       for (const [fileName, content] of fileEntries) {
         if (!fileName.endsWith("/")) {
-          // Skip directories
           const path = `${DUA_DIR}/${fileName}`;
-
-          // Ensure parent directories exist
           const pathParts = fileName.split("/");
           if (pathParts.length > 1) {
             const dirPath = `${DUA_DIR}/${pathParts.slice(0, -1).join("/")}`;
@@ -120,7 +105,6 @@ export default function Index () {
             });
           }
 
-          // Write file content
           await FileSystem.writeAsStringAsync(
             path,
             Buffer.from(content).toString(),
@@ -129,10 +113,10 @@ export default function Index () {
         }
       }
 
-      // Clean up the zip file
       await FileSystem.deleteAsync(uri);
 
       setShowDownloadModal(false);
+      setDownloadProgress(0);
       Alert.alert("সফল!", "দোয়া ডাটা সফলভাবে ডাউনলোড হয়েছে");
     } catch (err) {
       console.log("Download error:", err);
@@ -142,16 +126,13 @@ export default function Index () {
   };
 
   const navigateToSubCategory = async (category) => {
-    // প্রথমে ফাইল চেক করুন
     const filesExist = await checkFilesExist();
     
     if (!filesExist) {
-      // ফাইল না থাকলে মডাল দেখান
       setShowDownloadModal(true);
       return;
     }
     
-    // ফাইল থাকলে নেভিগেট করুন
     router.push({
       pathname: "/pages/education/dua/sub-category",
       params: {
@@ -177,8 +158,7 @@ export default function Index () {
                   {category.cat_name_bn}
                 </Text>
                 <Text style={styles.subCategoryCount}>
-                  সাব-ক্যাটাগরি -{" "}
-                  {enToBnNumber(category.no_of_subcat.toString())} টি
+                  সাব-ক্যাটাগরি - {enToBnNumber(category.no_of_subcat.toString())} টি
                 </Text>
               </View>
               <View style={styles.duaCountContainer}>
@@ -192,60 +172,17 @@ export default function Index () {
         </View>
       </ScrollView>
 
-      {/* ডাউনলোড মডাল */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showDownloadModal}
-        onRequestClose={() => setShowDownloadModal(false)}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>দোয়া ডাটা ডাউনলোড</Text>
-            <Text style={styles.modalText}>
-              দোয়া ডাটা ডাউনলোড করা প্রয়োজন। ইন্টারনেট সংযোগ থাকা অবস্থায় ডাউনলোড করুন।
-            </Text>
-            
-            <Text style={styles.fileSizeText}>
-              ফাইলের আকার: {FILE_SIZE} এমবি
-            </Text>
-            
-            {downloadProgress > 0 && (
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                  <View 
-                    style={[
-                      styles.progressFill, 
-                      {width: `${downloadProgress * 100}%`}
-                    ]} 
-                  />
-                </View>
-                <Text style={styles.progressText}>
-                  {Math.round(downloadProgress * 100)}% ডাউনলোড হয়েছে
-                </Text>
-              </View>
-            )}
-            
-            <View style={styles.modalButtons}>
-              <Pressable
-                style={[styles.button, styles.buttonCancel]}
-                onPress={() => setShowDownloadModal(false)}
-              >
-                <Text style={styles.buttonText}>বাতিল</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.button, styles.buttonDownload]}
-                onPress={startDownload}
-                disabled={downloadProgress > 0}
-              >
-                <Text style={styles.buttonText}>
-                  {downloadProgress > 0 ? 'ডাউনলোড হচ্ছে...' : 'ডাউনলোড করুন'}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* নতুন অ্যানিমেটেড ডাউনলোড মডাল */}
+      <DuaDownloadModal
+        showModal={showDownloadModal}
+        setShowModal={setShowDownloadModal}
+        bookName="দোয়া সংগ্রহ"
+        fileSize={FILE_SIZE}
+        itemCount={categories.reduce((total, cat) => total + cat.no_of_dua, 0)}
+        colorCode="#00897B"
+        onDownload={startDownload}
+        progress={downloadProgress}
+      />
     </View>
   );
 };
@@ -304,92 +241,5 @@ const styles = StyleSheet.create({
     color: "#888",
     fontSize: 14,
     fontFamily: "bangla_regular",
-  },
-  // মডাল স্টাইল
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 15,
-    padding: 25,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
-    fontFamily: "bangla_bold",
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 15,
-    textAlign: "center",
-    fontFamily: "bangla_regular",
-  },
-  fileSizeText: {
-    fontSize: 14,
-    marginBottom: 20,
-    textAlign: "center",
-    fontFamily: "bangla_medium",
-    color: "#555",
-  },
-  progressContainer: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  progressBar: {
-    height: 10,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#00897B',
-  },
-  progressText: {
-    textAlign: 'center',
-    marginTop: 5,
-    fontSize: 14,
-    fontFamily: "bangla_medium",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: '100%',
-  },
-  button: {
-    borderRadius: 8,
-    padding: 12,
-    elevation: 2,
-    minWidth: 120,
-  },
-  buttonCancel: {
-    backgroundColor: "#f44336",
-    marginRight: 10,
-  },
-  buttonDownload: {
-    backgroundColor: "#00897B",
-    marginLeft: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-    fontFamily: "bangla_medium",
   },
 });
