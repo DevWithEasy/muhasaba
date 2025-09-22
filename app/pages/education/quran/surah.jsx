@@ -198,7 +198,7 @@ export default function SurahScreen() {
           title: surahItem.name_bn,
           headerRight: () => (
             <TouchableOpacity
-              onPress={() => router.push('/pages/quran/settings')}
+              onPress={() => router.push('/pages/education/quran/settings')}
               style={{ marginRight: 4 }}
             >
               <Ionicons name="options" size={24} color="#037764" />

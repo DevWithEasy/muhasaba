@@ -48,7 +48,7 @@ export default function FridayAmolCalculation({ friday }) {
   const previousFridayTotal = getTotalCount(previousFriday);
 
   // উন্নতি/অবনতি চেক
-  const isImproved = previousFriday ? lastFridayTotal >= previousFridayTotal : true;
+  const isImproved = previousFriday ? lastFridayTotal > previousFridayTotal : true;
 
   return (
     <TouchableOpacity

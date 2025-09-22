@@ -24,7 +24,7 @@ export default function Education() {
     {
       name: "সালাত",
       iconKey: "salat",
-      route: "/pages/education/prayer",
+      route: "/pages/education/salah",
     },
     {
       name: "কুরআন পড়া",

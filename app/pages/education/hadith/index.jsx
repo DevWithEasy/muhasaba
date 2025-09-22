@@ -55,7 +55,7 @@ const HadithScreen = () => {
 
   const handleBookPress = (item) => {
     router.push({
-      pathname: '/pages/hadith/chapters',
+      pathname: '/pages/education/hadith/chapters',
       params: {
         id: item.id.toString(),
         name: item.title,

@@ -27,7 +27,7 @@ export default function DaroodCalculation({ darood }) {
   const previousCount = previousDarood?.count?.darood_ibrahim || 0;
 
   // আজকের vs গতকালের তুলনা
-  const isIncreased = todayCount >= previousCount;
+  const isIncreased = todayCount > previousCount;
 
   return (
     <TouchableOpacity

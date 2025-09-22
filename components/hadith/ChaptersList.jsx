@@ -56,7 +56,7 @@ export default function ChaptersList({
       style={styles.chapterItem}
       onPress={() =>
         router.push({
-          pathname: 'pages/hadith/hadiths',
+          pathname: 'pages/education/hadith/hadiths',
           params: { 
             book_id: item.book_id, 
             chapter_id: item.chapter_id,

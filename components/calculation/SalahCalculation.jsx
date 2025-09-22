@@ -54,7 +54,7 @@ export default function SalahCalculation({ salah }) {
   ) : 0;
 
   // আজকের vs গতকালের তুলনা
-  const isWaqtIncreased = todayWaqt >= previousWaqt;
+  const isWaqtIncreased = todayWaqt > previousWaqt;
 
   return (
     <TouchableOpacity

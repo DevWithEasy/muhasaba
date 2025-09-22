@@ -34,7 +34,7 @@ export default function TasbihCalculation({ tasbih }) {
   }
 
   // আজকের vs গতকালের তুলনা
-  const isIncreased = todayTotal >= previousTotal;
+  const isIncreased = todayTotal > previousTotal;
 
   // আজকের সবচেয়ে বেশি পড়া তাসবিহ বের করা
   let mostRecitedTasbih = "";

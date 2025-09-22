@@ -110,7 +110,7 @@ export default function SubCategoryScreen() {
 
   const navigateToDuaDetails = (subCatName, duas, currentIndex) => {
     router.push({
-      pathname: "/pages/dua/dua-collection",
+      pathname: "/pages/education/dua/dua-collection",
       params: {
         catName: cateName,
         subCatName,

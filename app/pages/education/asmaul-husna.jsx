@@ -1,17 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import asmaulhusna from "../../../assets/data/asmaul_husna.json";
-
-const { width } = Dimensions.get('window');
 
 export default function AsmaulHusna() {
   const [selectedId, setSelectedId] = useState(null);
@@ -207,7 +204,7 @@ const styles = StyleSheet.create({
       height: 2,
     },
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 1,
   },
   expandedItem: {
     backgroundColor: "#f5f7ff",
@@ -242,8 +239,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   banglaText: {
-    fontSize: 18,
-    fontFamily: "bangla_bold",
+    fontSize: 16,
+    fontFamily: "bangla_semibold",
     color: "#2c3e50",
     marginBottom: 4,
   },

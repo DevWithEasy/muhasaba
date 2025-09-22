@@ -27,7 +27,7 @@ export default function QuranCalculation({ quran }) {
   const previousCount = previousQuran?.read?.count || 0;
 
   // আজকের vs গতকালের তুলনা
-  const isIncreased = todayCount >= previousCount;
+  const isIncreased = todayCount > previousCount;
 
   return (
     <TouchableOpacity

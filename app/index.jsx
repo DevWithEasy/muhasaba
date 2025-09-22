@@ -1,16 +1,20 @@
-import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import { useRouter } from "expo-router";
 import * as Updates from "expo-updates";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function Index() {
   const router = useRouter();
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateStatus, setUpdateStatus] = useState("");
-  const [updateText, setUpdateText] = useState("");
   const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
@@ -18,8 +22,10 @@ export default function Index() {
       setIsConnected(state.isConnected);
     });
 
+    checkForUpdates(); // check update on mount
+
     return () => unsubscribe();
-  }, []);
+  }, [isConnected]);
 
   async function checkForUpdates() {
     if (__DEV__) {
@@ -42,18 +48,6 @@ export default function Index() {
       if (update.isAvailable) {
         setShowUpdateModal(true);
         setUpdateStatus("checked");
-        setUpdateText("নতুন আপডেট পাওয়া গেছে। ");
-
-        setTimeout(async () => {
-          setUpdateStatus("downloading");
-          setUpdateText("আপডেট ডাউনলোড হচ্ছে...");
-
-          await Updates.fetchUpdateAsync();
-
-          setUpdateStatus("installing");
-          setUpdateText("আপডেট ইনস্টল হচ্ছে...");
-          await Updates.reloadAsync();
-        }, 2000);
       } else {
         setTimeout(() => {
           checkFirstInstall();
@@ -64,6 +58,23 @@ export default function Index() {
       setTimeout(() => {
         checkFirstInstall();
       }, 2000);
+    }
+  }
+
+  async function handleUpdatePress() {
+    setUpdateStatus("downloading");
+
+    try {
+      await Updates.fetchUpdateAsync();
+      setUpdateStatus("installing");
+      await Updates.reloadAsync();
+      // After reload, app will restart, so no next line necessary.
+    } catch (error) {
+      console.error("Error during update process:", error);
+      // Reset UI so user can retry or continue
+      setUpdateStatus("");
+      setShowUpdateModal(false);
+      checkFirstInstall();
     }
   }
 
@@ -81,10 +92,6 @@ export default function Index() {
     }
   }
 
-  useEffect(() => {
-    checkForUpdates();
-  }, [isConnected]);
-
   return (
     <View
       style={{
@@ -92,38 +99,48 @@ export default function Index() {
         justifyContent: "center",
         alignItems: "center",
         padding: 20,
-        backgroundColor: "#f8fafc",
+        backgroundColor: "#fff",
       }}
     >
+      <Image
+        source={require("../assets/images/adaptive-icon.png")}
+        style={{ width: 90, height: 90 }}
+      />
       <Text
-        style={{ fontFamily: "bangla_bold", fontSize: 50, color: "#037764" }}
+        style={{
+          fontFamily: "bangla_bold",
+          fontSize: 40,
+          color: "#037764",
+          marginTop: -15,
+        }}
       >
         মুহাসাবা
       </Text>
       <Text
         style={{
           fontFamily: "bangla_medium",
-          fontSize: 16,
-          color: "#ff1100ff",
+          color: "#797979ff",
         }}
       >
-        (আত্মসমালোচনা)
+        আপনার আত্ন উন্নয়নের সঙ্গী
       </Text>
 
       {!isConnected && (
         <View
           style={{
-            marginTop: 20,
-            padding: 10,
+            marginTop: 30,
+            paddingVertical: 2,
+            paddingHorizontal: 5,
             backgroundColor: "#ffebee",
             borderRadius: 5,
           }}
         >
           <Text
             style={{
-              fontFamily: "bangla_medium",
+              fontFamily: "bangla_regular",
               color: "#d32f2f",
               textAlign: "center",
+              fontSize: 10,
             }}
           >
             ইন্টারনেট সংযোগ নেই। আপডেট চেক করা সম্ভব হচ্ছে না।
@@ -135,7 +152,7 @@ export default function Index() {
         <View
           style={{
             position: "absolute",
-            bottom: 180,
+            bottom: 40,
             marginTop: 40,
             width: "100%",
             alignItems: "center",
@@ -144,53 +161,122 @@ export default function Index() {
             borderRadius: 5,
           }}
         >
-          {updateStatus !== "checked" &&
-          updateStatus !== "downloading" &&
-          updateStatus !== "installing" ? (
-            <ActivityIndicator size={30} color="#037764" />
-          ) : (
-            <Ionicons name="checkmark-circle" size={30} color="#037764" />
-          )}
-          <Text
-            style={{
-              fontFamily: "bangla_medium",
-              color: "#037764",
-              padding: 5,
-            }}
-          >
-            {updateText}
-          </Text>
-          {updateStatus === "downloading" && (
-            <Text
+          {updateStatus === "checked" && (
+            <View
               style={{
-                fontSize: 12,
-                fontFamily: "bangla_regular",
-                color: "#ccc",
-                padding: 5,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                borderWidth: 0.5,
+                borderColor: "#037764",
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                backgroundColor: "#03776415",
+                borderRadius: 8,
               }}
             >
-              ইন্টারনেট সংযোগ চালু রাখুন। আপডেট ডাউনলোড হতে কিছু সময় লাগতে পারে।
-              আপডেট সম্পন্ন হলে এপটি স্বয়ংক্রিয়ভাবে রিস্টার্ট হবে।
-            </Text>
+              <Text
+                style={{
+                  fontFamily: "bangla_regular",
+                  fontSize: 14,
+                  color: "#037764",
+                }}
+              >
+                নতুন আপডেট পাওয়া গেছে
+              </Text>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: "#037764",
+                  borderRadius: 4,
+                }}
+                onPress={handleUpdatePress}
+              >
+                <Text
+                  style={{
+                    fontFamily: "bangla_regular",
+                    fontSize: 13,
+                    color: "#fff",
+                    paddingVertical: 2,
+                    paddingHorizontal: 5,
+                  }}
+                >
+                  আপডেট করুন
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          {updateStatus === "downloading" && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                borderWidth: 0.5,
+                borderColor: "#037764",
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                backgroundColor: "#03776415",
+                borderRadius: 8,
+              }}
+            >
+              <ActivityIndicator size="small" color="#037764" />
+              <Text
+                style={{
+                  fontFamily: "bangla_regular",
+                  fontSize: 14,
+                  color: "#037764",
+                }}
+              >
+                আপডেট হচ্ছে। অপেক্ষা করুন . . .
+              </Text>
+            </View>
+          )}
+          {updateStatus === "installing" && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                borderWidth: 0.5,
+                borderColor: "#037764",
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                backgroundColor: "#03776415",
+                borderRadius: 8,
+              }}
+            >
+              <ActivityIndicator size="small" color="#037764" />
+              <Text
+                style={{
+                  fontFamily: "bangla_regular",
+                  fontSize: 14,
+                  color: "#037764",
+                }}
+              >
+                আপডেট ইন্সটল হচ্ছে . . .
+              </Text>
+            </View>
           )}
         </View>
       )}
+
       <View
         style={{
           position: "absolute",
-          bottom: 5,
+          bottom: 10,
           left: 10,
         }}
       >
         <Text
           style={{
             fontFamily: "bangla_bold",
-            fontSize: 12,
+            fontSize: 10,
             color: "#bbbbbbff",
             padding: 5,
+            fontStyle: "italic",
           }}
         >
-          Developed by: ROBI APP LAB
+          Developed by: RobiAppLab
         </Text>
       </View>
     </View>

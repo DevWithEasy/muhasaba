@@ -153,7 +153,7 @@ export default function Index () {
     
     // ফাইল থাকলে নেভিগেট করুন
     router.push({
-      pathname: "/pages/dua/sub-category",
+      pathname: "/pages/education/dua/sub-category",
       params: {
         cateName: category.cat_name_bn,
         catId: category.cat_id,

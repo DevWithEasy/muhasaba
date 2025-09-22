@@ -31,7 +31,7 @@ export default function JobCalculation({ goodBadJob }) {
   const previousNetJob = previousGoodJob - previousBadJob;
 
   // আজকের vs গতকালের তুলনা (নেট ভালো কাজের ভিত্তিতে)
-  const isIncreased = todayNetJob >= previousNetJob;
+  const isIncreased = todayNetJob > previousNetJob;
 
   return (
     <TouchableOpacity

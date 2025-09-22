@@ -32,8 +32,8 @@ export default function IstighfarCalculation({ istighfar }) {
   const previousTotal = previousAstaghfirullah + previousSayyidul;
 
   // আজকের vs গতকালের তুলনা
-  const isIncreased = todayTotal >= previousTotal;
-
+  const isIncreased = todayTotal > previousTotal;
+  console.log(isIncreased)
   return (
     <TouchableOpacity
       style={styles.container}

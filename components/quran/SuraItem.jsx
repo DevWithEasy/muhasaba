@@ -14,7 +14,7 @@ export default function SuraItem({ item, showModal, setShowModal }) {
       return;
     }
     router.push({
-      pathname: `/pages/quran/surah`,
+      pathname: `/pages/education/quran/surah`,
       params: {
         surahData: JSON.stringify(surahItem),
       },

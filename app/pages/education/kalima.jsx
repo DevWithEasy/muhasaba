@@ -1,115 +1,146 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  StatusBar,
-  TouchableOpacity,
-  useWindowDimensions,
-} from "react-native";
-import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useRef, useState } from "react";
+import {
+  Animated,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 import kalimas from "../../../assets/data/kalimas.json";
 
-export default function Kalima() {
-  const [expandedKalima, setExpandedKalima] = useState(null);
-  const { width } = useWindowDimensions();
 
-  const toggleKalima = (index) => {
-    if (expandedKalima === index) {
-      setExpandedKalima(null);
+export default function Kalima() {
+  const [selectedId, setSelectedId] = useState(null);
+  const animation = useRef(new Animated.Value(0)).current;
+  
+  const toggleItem = (id) => {
+    if (selectedId === id) {
+      // Collapse item
+      Animated.timing(animation, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => setSelectedId(null));
     } else {
-      setExpandedKalima(index);
+      // Expand item
+      setSelectedId(id);
+      Animated.timing(animation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
     }
   };
 
-  const arabicTagsStyles = {
-    body: {
-      whiteSpace: "normal",
-      fontSize: 24,
-      textAlign: "center",
-      lineHeight: 40,
-      color: "#2e7d32",
-      fontFamily: "ScheherazadeNew-Bold",
-    },
+  const renderItem = ({ item, index }) => {
+    const isExpanded = selectedId === index;
+    
+    return (
+      <Animated.View 
+        style={[
+          styles.item, 
+          isExpanded && styles.expandedItem,
+          {
+            shadowOpacity: isExpanded ? 0.2 : 0.1,
+            elevation: isExpanded ? 4 : 2,
+            transform: [{
+              scale: isExpanded ? 1.02 : 1
+            }]
+          }
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => toggleItem(index)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.header}>
+            <View style={styles.idContainer}>
+              <Text style={styles.idText}>{index + 1}</Text>
+            </View>
+            
+            <View style={styles.contentContainer}>
+              <View style={styles.infoContainer}>
+                <Text style={styles.titleText}>{item.title}</Text>
+              </View>
+              
+              <View style={styles.arbiContainer}>
+                <Ionicons 
+                  name={isExpanded ? "chevron-up" : "chevron-down"} 
+                  size={20} 
+                  color="#037764" 
+                  style={styles.chevron}
+                />
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+        
+        {isExpanded && (
+          <Animated.View 
+            style={[
+              styles.details,
+              {
+                opacity: animation,
+                transform: [{
+                  translateY: animation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-10, 0]
+                  })
+                }]
+              }
+            ]}
+          >
+            <View style={styles.arabicContainer}>
+              <Text style={styles.arabicText}>{item.arabic}</Text>
+            </View>
+            
+            <View style={styles.fazilatHeader}>
+              <Text style={styles.fazilatTitle}>উচ্চারণ</Text>
+              <View style={styles.fazilatLine} />
+            </View>
+            <Text style={styles.fazText}>{item.punctuation}</Text>
+            
+            <View style={styles.fazilatHeader}>
+              <Text style={styles.fazilatTitle}>অর্থ</Text>
+              <View style={styles.fazilatLine} />
+            </View>
+            <Text style={styles.fazText}>{item.translation}</Text>
+            
+            <View style={styles.fazilatHeader}>
+              <Text style={styles.fazilatTitle}>ব্যাখ্যা</Text>
+              <View style={styles.fazilatLine} />
+            </View>
+            <Text style={styles.fazText}>{item.explain}</Text>
+          </Animated.View>
+        )}
+      </Animated.View>
+    );
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#2e7d32" barStyle="light-content" />
-
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>ছয় কালিমা</Text>
-        <Text style={styles.headerSubtitle}>ইসলামের মূল ভিত্তিসমূহ</Text>
+      
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>ছয় কালিমা</Text>
+        <Text style={styles.subtitle}>ইসলামের মূল ভিত্তিসমূহ</Text>
+        <View style={styles.decorativeLine} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
+      <FlatList
+        data={kalimas}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
         showsVerticalScrollIndicator={false}
-      >
-        {kalimas.map((kalima, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.kalimaCard,
-              expandedKalima === index && styles.expandedCard,
-            ]}
-            onPress={() => toggleKalima(index)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.cardHeader}>
-              <View style={styles.numberContainer}>
-                <Text style={styles.numberText}>{index + 1}</Text>
-              </View>
-              <Text style={styles.titleText}>{kalima.title}</Text>
-              <Ionicons
-                name={expandedKalima === index ? "chevron-up" : "chevron-down"}
-                size={24}
-                color="#2e7d32"
-              />
-            </View>
-
-            {expandedKalima === index && (
-              <View style={styles.cardContent}>
-                <View style={styles.arabicContainer}>
-                  <Text styles={arabicTagsStyles}>{kalima.arabic}</Text>
-                </View>
-
-                <View style={styles.divider} />
-
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>উচ্চারণ</Text>
-                  <Text style={styles.punctuationText}>
-                    {kalima.punctuation}
-                  </Text>
-                </View>
-
-                <View style={styles.divider} />
-
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>অর্থ</Text>
-                  <Text style={styles.translationText}>
-                    {kalima.translation}
-                  </Text>
-                </View>
-
-                <View style={styles.divider} />
-
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>ব্যাখ্যা</Text>
-                  <Text style={styles.explanationText}>{kalima.explain}</Text>
-                </View>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            কালিমাসমূহ মুখস্থ করুন ও আমল করুন
-          </Text>
-        </View>
-      </ScrollView>
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={styles.instructionContainer}>
+            <Ionicons name="information-circle" size={20} color="#037764" />
+            <Text style={styles.instructionText}>কালিমার উপর ট্যাপ করে বিস্তারিত দেখুন</Text>
+          </View>
+        }
+      />
     </View>
   );
 }
@@ -117,12 +148,11 @@ export default function Kalima() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f9f5",
+    backgroundColor: "#f8f9fa",
   },
-  header: {
-    backgroundColor: "#2e7d32",
-    padding: 20,
-    paddingTop: 50,
+  headerContainer: {
+    backgroundColor: "#037764",
+    padding: 12,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     alignItems: "center",
@@ -134,125 +164,151 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
+    zIndex: 1,
   },
-  headerTitle: {
-    fontSize: 24,
+  title: {
+    fontSize: 18,
     fontFamily: "bangla_bold",
     color: "#ffffff",
     marginBottom: 5,
   },
-  headerSubtitle: {
+  subtitle: {
     color: "rgba(255, 255, 255, 0.8)",
     fontFamily: "bangla_regular",
     fontSize: 16,
   },
-  scrollView: {
-    flex: 1,
-    padding: 16,
+  decorativeLine: {
+    height: 4,
+    width: 60,
+    backgroundColor: '#fff',
+    borderRadius: 2,
+    marginTop: 12,
   },
-  kalimaCard: {
+  listContent: {
+    padding: 16,
+    paddingTop: 24,
+  },
+  instructionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e6f7f3',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  instructionText: {
+    marginLeft: 8,
+    fontFamily: 'bangla_regular',
+    color: '#037764',
+    fontSize: 14,
+  },
+  item: {
     backgroundColor: "#ffffff",
+    marginBottom: 16,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
+    shadowColor: "#037764",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 2,
+    shadowRadius: 5,
+    elevation: 1,
   },
-  expandedCard: {
-    backgroundColor: "#f1f8e9",
-    shadowColor: "#2e7d32",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 5.46,
-    elevation: 4,
+  expandedItem: {
+    backgroundColor: "#f5f7ff",
+    borderWidth: 1,
+    borderColor: "rgba(3, 119, 100, 0.1)",
   },
-  cardHeader: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
-  numberContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#2e7d32",
+  contentContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  infoContainer: {
+    flex: 1,
+    paddingHorizontal: 12,
+  },
+  arbiContainer: {
+    alignItems: 'flex-end',
+  },
+  chevron: {
+    marginTop: 4,
+  },
+  titleText: {
+    fontSize: 16,
+    fontFamily: "bangla_semibold",
+    color: "#2c3e50",
+    marginBottom: 4,
+  },
+  idContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#037764",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  numberText: {
+  idText: {
     color: "#ffffff",
     fontFamily: "bangla_bold",
     fontSize: 16,
   },
-  titleText: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 18,
-    fontFamily: "bangla_bold",
-    color: "#2e7d32",
-  },
-  cardContent: {
+  details: {
     marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(3, 119, 100, 0.1)",
   },
   arabicContainer: {
     padding: 12,
-    backgroundColor: "rgba(46, 125, 50, 0.05)",
+    backgroundColor: "rgba(3, 119, 100, 0.05)",
     borderRadius: 12,
     marginBottom: 16,
   },
-  section: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: "bangla_bold",
-    color: "#2e7d32",
-    marginBottom: 8,
-  },
-  punctuationText: {
-    fontSize: 16,
-    fontFamily: "bangla_regular",
-    color: "#5a6b7d",
-    lineHeight: 24,
+  arabicText: {
+    fontSize: 24,
+    fontFamily: "ScheherazadeNew-Bold",
+    color: "#037764",
     textAlign: "center",
+    lineHeight: 40,
   },
-  translationText: {
+  fazilatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  fazilatTitle: {
+    fontFamily: 'bangla_bold',
+    color: '#037764',
+    marginRight: 12,
     fontSize: 16,
+  },
+  fazilatLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(3, 119, 100, 0.2)',
+  },
+  fazText: {
     fontFamily: "bangla_regular",
     color: "#34495e",
-    lineHeight: 24,
-    textAlign: "justify",
-  },
-  explanationText: {
-    fontSize: 15,
-    fontFamily: "bangla_regular",
-    color: "#2c3e50",
     lineHeight: 22,
     textAlign: "justify",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(46, 125, 50, 0.2)",
-    marginVertical: 16,
-  },
-  footer: {
-    padding: 16,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  footerText: {
-    fontSize: 14,
-    fontFamily: "bangla_regular",
-    color: "#7f8c8d",
-    fontStyle: "italic",
+    marginBottom: 16,
   },
 });
