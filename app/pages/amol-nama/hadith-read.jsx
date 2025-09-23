@@ -88,7 +88,9 @@ export default function HadithRead() {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateString = formatDate(selectedYear, selectedMonth, day);
-      const existingData = filteredData.find((item) => item.date === dateString);
+      const existingData = filteredData.find(
+        (item) => item.date === dateString
+      );
 
       let comparison = null;
       if (dateString === todayFormatted) {
@@ -155,8 +157,8 @@ export default function HadithRead() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text>ডেটা লোড হচ্ছে...</Text>
+        <ActivityIndicator size="large" color="#037764" />
+        <Text style={{ fontFamily: "bangla_regular" }}>ডেটা লোড হচ্ছে...</Text>
       </View>
     );
   }
@@ -170,8 +172,14 @@ export default function HadithRead() {
   }
 
   const allDatesData = data ? generateAllDatesData() : [];
-  const currentMonthTotalDays = getMonthlyTotalDays(selectedMonth, selectedYear);
-  const currentMonthTotalCount = getMonthlyTotalCount(selectedMonth, selectedYear);
+  const currentMonthTotalDays = getMonthlyTotalDays(
+    selectedMonth,
+    selectedYear
+  );
+  const currentMonthTotalCount = getMonthlyTotalCount(
+    selectedMonth,
+    selectedYear
+  );
   const { month: prevMonth, year: prevYear } = getPreviousMonthYear();
   const previousMonthTotalDays = getMonthlyTotalDays(prevMonth, prevYear);
   const previousMonthTotalCount = getMonthlyTotalCount(prevMonth, prevYear);
@@ -182,7 +190,11 @@ export default function HadithRead() {
       <View style={styles.selectorContainer}>
         <View style={styles.pickerContainer}>
           <Text
-            style={{ fontFamily: "bangla_semibold", fontSize: 16, marginRight: 12 }}
+            style={{
+              fontFamily: "bangla_semibold",
+              fontSize: 16,
+              marginRight: 12,
+            }}
           >
             মাস:
           </Text>
@@ -194,7 +206,10 @@ export default function HadithRead() {
             {monthOptions.map((month) => (
               <Text
                 key={month}
-                style={[styles.selectorOption, selectedMonth === month && styles.selectedOption]}
+                style={[
+                  styles.selectorOption,
+                  selectedMonth === month && styles.selectedOption,
+                ]}
                 onPress={() => setSelectedMonth(month)}
               >
                 {getMonthName(month)}
@@ -204,7 +219,11 @@ export default function HadithRead() {
         </View>
         <View style={styles.pickerContainer}>
           <Text
-            style={{ fontFamily: "bangla_semibold", fontSize: 16, marginRight: 8 }}
+            style={{
+              fontFamily: "bangla_semibold",
+              fontSize: 16,
+              marginRight: 8,
+            }}
           >
             বছর:
           </Text>
@@ -216,7 +235,10 @@ export default function HadithRead() {
             {yearOptions.map((year) => (
               <Text
                 key={year}
-                style={[styles.selectorOption, selectedYear === year && styles.selectedOption]}
+                style={[
+                  styles.selectorOption,
+                  selectedYear === year && styles.selectedOption,
+                ]}
                 onPress={() => setSelectedYear(year)}
               >
                 {year}
@@ -264,21 +286,36 @@ export default function HadithRead() {
               style={[styles.listItem, item.isToday && styles.todayItem]}
             >
               <View style={styles.dateContainer}>
-                <Text style={[styles.dateText, item.isToday && styles.todayText]}>
-                  {new Date(item.date).getDate().toLocaleString("bn-BD")} {getMonthName(selectedMonth)}, {selectedYear.toLocaleString("bn-BD")}
+                <Text
+                  style={[styles.dateText, item.isToday && styles.todayText]}
+                >
+                  {new Date(item.date).getDate().toLocaleString("bn-BD")}{" "}
+                  {getMonthName(selectedMonth)},{" "}
+                  {selectedYear.toLocaleString("bn-BD")}
                   {item.isToday && " (আজ)"}
                 </Text>
-                <View style={styles.statusContainer}>
+                <View
+                  style={[
+                    styles.statusContainer,
+                    {
+                      backgroundColor: item.read.status ? "#4CAF50" : "#F44336",
+                    },
+                  ]}
+                >
                   {item.read.status ? (
                     <>
-                      <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={18}
+                        color="#fff"
+                      />
                       <Text style={styles.countText}>
                         {item.read.count.toLocaleString("bn-BD")} পৃষ্ঠা
                       </Text>
                     </>
                   ) : (
                     <>
-                      <Ionicons name="close-circle" size={24} color="#F44336" />
+                      <Ionicons name="close-circle" size={18} color="#fff" />
                       <Text style={styles.notReadText}>পড়া হয়নি</Text>
                     </>
                   )}
@@ -414,16 +451,22 @@ const styles = StyleSheet.create({
   statusContainer: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    padding: 2,
+    borderRadius: 4,
+    justifyContent: "center",
   },
   countText: {
     marginLeft: 4,
-    color: "#4CAF50",
-    fontFamily: "bangla_semibold",
+    color: "#ffffff",
+    fontFamily: "bangla_regular",
+    fontSize: 12,
   },
   notReadText: {
     marginLeft: 4,
-    color: "#F44336",
-    fontFamily: "bangla_semibold",
+    color: "#ffffff",
+    fontFamily: "bangla_regular",
+    fontSize: 12,
   },
   comparisonContainer: {
     flexDirection: "row",

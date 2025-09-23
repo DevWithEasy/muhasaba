@@ -160,8 +160,8 @@ export default function Donation() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text>ডেটা লোড হচ্ছে...</Text>
+        <ActivityIndicator size="large" color="#037764" />
+        <Text style={{ fontFamily: "bangla_regular" }}>ডেটা লোড হচ্ছে...</Text>
       </View>
     );
   }
@@ -175,25 +175,36 @@ export default function Donation() {
   }
 
   const allDatesData = data ? generateAllDatesData() : [];
-  const currentMonthDonations = getMonthlyDonationCount(selectedMonth, selectedYear);
+  const currentMonthDonations = getMonthlyDonationCount(
+    selectedMonth,
+    selectedYear
+  );
   const totalDaysInMonth = getDaysInMonth(selectedMonth, selectedYear);
-  const donationPercentage = totalDaysInMonth > 0 
-    ? Math.round((currentMonthDonations / totalDaysInMonth) * 100) 
-    : 0;
+  const donationPercentage =
+    totalDaysInMonth > 0
+      ? Math.round((currentMonthDonations / totalDaysInMonth) * 100)
+      : 0;
 
   const { month: prevMonth, year: prevYear } = getPreviousMonthYear();
   const previousMonthDonations = getMonthlyDonationCount(prevMonth, prevYear);
   const prevTotalDaysInMonth = getDaysInMonth(prevMonth, prevYear);
-  const prevDonationPercentage = prevTotalDaysInMonth > 0 
-    ? Math.round((previousMonthDonations / prevTotalDaysInMonth) * 100) 
-    : 0;
+  const prevDonationPercentage =
+    prevTotalDaysInMonth > 0
+      ? Math.round((previousMonthDonations / prevTotalDaysInMonth) * 100)
+      : 0;
 
   return (
     <View style={styles.container}>
       {/* মাস এবং বছর সিলেক্টর */}
       <View style={styles.selectorContainer}>
         <View style={styles.pickerContainer}>
-          <Text style={{ fontFamily: "bangla_semibold", fontSize: 16, marginRight: 12 }}>
+          <Text
+            style={{
+              fontFamily: "bangla_semibold",
+              fontSize: 16,
+              marginRight: 12,
+            }}
+          >
             মাস:
           </Text>
           <ScrollView
@@ -217,7 +228,13 @@ export default function Donation() {
         </View>
 
         <View style={styles.pickerContainer}>
-          <Text style={{ fontFamily: "bangla_semibold", fontSize: 16, marginRight: 8 }}>
+          <Text
+            style={{
+              fontFamily: "bangla_semibold",
+              fontSize: 16,
+              marginRight: 8,
+            }}
+          >
             বছর:
           </Text>
           <ScrollView
@@ -250,9 +267,7 @@ export default function Donation() {
           <Text style={styles.summaryValue}>
             {previousMonthDonations}/{prevTotalDaysInMonth} দিন
           </Text>
-          <Text style={styles.percentageText}>
-            ({prevDonationPercentage}%)
-          </Text>
+          <Text style={styles.percentageText}>({prevDonationPercentage}%)</Text>
         </View>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>
@@ -261,9 +276,7 @@ export default function Donation() {
           <Text style={styles.summaryValue}>
             {currentMonthDonations}/{totalDaysInMonth} দিন
           </Text>
-          <Text style={styles.percentageText}>
-            ({donationPercentage}%)
-          </Text>
+          <Text style={styles.percentageText}>({donationPercentage}%)</Text>
         </View>
       </View>
 
@@ -287,11 +300,22 @@ export default function Donation() {
                   {selectedYear.toLocaleString("bn-BD")}
                   {item.isToday && " (আজ)"}
                 </Text>
-                <View style={styles.statusContainer}>
+                <View
+                  style={[
+                    styles.statusContainer,
+                    {
+                      backgroundColor: item.donated ? "#4CAF50" : "#F44336",
+                    },
+                  ]}
+                >
                   {item.donated ? (
-                    <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={18}
+                      color="#fff"
+                    />
                   ) : (
-                    <Ionicons name="close-circle" size={24} color="#F44336" />
+                    <Ionicons name="close-circle" size={18} color="#fff" />
                   )}
                   <Text
                     style={[
@@ -418,16 +442,26 @@ const styles = StyleSheet.create({
   statusContainer: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    padding: 2,
+    borderRadius: 4,
+    justifyContent: "center",
   },
   statusText: {
     marginLeft: 8,
     fontFamily: "bangla_semibold",
   },
   donatedText: {
-    color: "#4CAF50",
+    marginLeft: 4,
+    color: "#ffffff",
+    fontFamily: "bangla_regular",
+    fontSize: 12,
   },
   notDonatedText: {
-    color: "#F44336",
+    marginLeft: 4,
+    color: "#ffffff",
+    fontFamily: "bangla_regular",
+    fontSize: 12, 
   },
   errorText: {
     color: "#F44336",

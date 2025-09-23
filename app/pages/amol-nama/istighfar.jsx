@@ -175,8 +175,8 @@ export default function Istighfar() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text>ডেটা লোড হচ্ছে...</Text>
+        <ActivityIndicator size="large" color="#037764" />
+        <Text style={{fontFamily : 'bangla_regular'}}>ডেটা লোড হচ্ছে...</Text>
       </View>
     );
   }

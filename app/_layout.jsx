@@ -128,6 +128,68 @@ export default function RootLayout() {
               }}
             />
 
+            <Stack.Screen
+              name="pages/amol-nama/quran-read"
+              options={{
+                title: "কুরআন পরিসংখ্যান",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+            <Stack.Screen
+              name="pages/amol-nama/hadith-read"
+              options={{
+                title: "হাদিস পরিসংখ্যান",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+            <Stack.Screen
+              name="pages/amol-nama/istighfar"
+              options={{
+                title: "ইস্তিগফার পরিসংখ্যান",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/amol-nama/donation"
+              options={{
+                title: "দান করার পরিসংখ্যান",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/amol-nama/darood"
+              options={{
+                title: "দরুদ পরিসংখ্যান",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/amol-nama/good-bad-job"
+              options={{
+                title: "ভালো ও খারাপ কাজের পরিসংখ্যান",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/amol-nama/tasbih"
+              options={{
+                title: "তাসবিহ গণনার পরিসংখ্যান",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/amol-nama/friday-amol"
+              options={{
+                title: "শুক্রবার আমলের পরিসংখ্যান",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
             {/* Quran Screens */}
             <Stack.Screen
               name="pages/quran-read"
@@ -137,21 +199,21 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="pages/quran/index"
+              name="pages/education/quran/index"
               options={{
                 title: "কুরআন মাজিদ",
                 headerBackTitle: "পিছনে",
               }}
             />
             <Stack.Screen
-              name="pages/quran/surah"
+              name="pages/education/quran/surah"
               options={{
                 title: "সূরার বিবরণ",
                 headerBackTitle: "পিছনে",
               }}
             />
             <Stack.Screen
-              name="pages/quran/settings"
+              name="pages/education/quran/settings"
               options={{
                 title: "কুরআন সেটিংস",
                 headerBackTitle: "পিছনে",
@@ -167,21 +229,21 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="pages/hadith/index"
+              name="pages/education/hadith/index"
               options={{
                 title: "হাদিস গ্রন্থাবলী",
                 headerBackTitle: "পিছনে",
               }}
             />
             <Stack.Screen
-              name="pages/hadith/chapters"
+              name="pages/education/hadith/chapters"
               options={{
                 title: "হাদিস অধ্যায়",
                 headerBackTitle: "পিছনে",
               }}
             />
             <Stack.Screen
-              name="pages/hadith/hadiths"
+              name="pages/education/hadith/hadiths"
               options={{
                 title: "হাদিস সমূহ",
                 headerBackTitle: "পিছনে",

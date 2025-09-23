@@ -10,7 +10,7 @@ export default function FridayAmolCalculation({ friday }) {
     return (
       <TouchableOpacity
         style={styles.container}
-        onPress={() => router.push("/pages/friday-amol")}
+        onPress={() => router.push("/pages/amol-nama/friday-amol")}
       >
         <Ionicons name="calendar" size={30} color="#037764" />
         <View style={{ marginLeft: 10, flex: 1 }}>

@@ -67,7 +67,7 @@ export default function Prayer() {
     if (loading) {
       return (
         <View style={styles.container}>
-          <Text>Loading file information...</Text>
+          <Text style={{fontFamily : 'bangla_regular'}}>ডেটা লোড হচ্ছে...</Text>
         </View>
       );
     }
