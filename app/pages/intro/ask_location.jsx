@@ -168,7 +168,7 @@ export default function AskLocation() {
       setContinueLoading(false);
     }
   };
-  console.log(params)
+  
   return (
     <View
       style={styles.container}

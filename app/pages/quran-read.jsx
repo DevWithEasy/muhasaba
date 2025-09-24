@@ -169,7 +169,7 @@ export default function QuranRead() {
           >
             <Text style={styles.sectionTitle}>হাদিস পড়া ট্র্যাকার</Text>
             <TouchableOpacity
-              onPress={() => router.push("/pages/quran")}
+              onPress={() => router.push("/pages/education/quran")}
               style={{
                 borderWidth: 1,
                 borderColor: "#037764",

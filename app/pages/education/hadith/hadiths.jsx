@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import convertToBanglaNumbers from "../../../../utils/convertToBanglaNumber";
+import useSettingsStore from "../../../../store/settingsStore"; // Zustand store থেকে ফন্ট সাইজ নিয়েছি
 
 export default function Hadiths() {
   const params = useLocalSearchParams();
@@ -24,9 +25,23 @@ export default function Hadiths() {
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [modalVisible, setModalVisible] = useState(false);
-  const [arabicFontSize, setArabicFontSize] = useState(20);
-  const [banglaFontSize, setBanglaFontSize] = useState(16);
+
+  // Zustand থেকে ফন্ট সাইজ এবং আপডেটার
+  const { arabicFontSize, banglaFontSize, updateSetting } = useSettingsStore();
+
+  // মডালের লোকাল ফন্ট সাইজ স্টেট (লোকাল স্টেট যাতে স্লাইডারে রিয়েল টাইম রিপ্লে হয়)
+  const [localArabicFontSize, setLocalArabicFontSize] = useState(arabicFontSize);
+  const [localBanglaFontSize, setLocalBanglaFontSize] = useState(banglaFontSize);
+
+  // মডাল ওপেন হলে Zustand থেকে লোকাল স্টেটে মান বসানো
+  useEffect(() => {
+    if (modalVisible) {
+      setLocalArabicFontSize(arabicFontSize);
+      setLocalBanglaFontSize(banglaFontSize);
+    }
+  }, [modalVisible, arabicFontSize, banglaFontSize]);
 
   useEffect(() => {
     const loadHadiths = async () => {
@@ -115,21 +130,8 @@ export default function Hadiths() {
     </View>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={colorCode} />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
+  // স্লাইডারে লোকাল স্টেট আপডেট হবে
+  // স্লাইড শেষ হলে Zustand এ সেভ হবে
 
   return (
     <View style={styles.container}>
@@ -142,7 +144,7 @@ export default function Hadiths() {
           headerRight: () => (
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
-              style={{ marginRight: 4}}
+              style={{ marginRight: 4 }}
             >
               <Ionicons name="options" size={24} color="#037764" />
             </TouchableOpacity>
@@ -162,9 +164,7 @@ export default function Hadiths() {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}
+        onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
@@ -172,39 +172,47 @@ export default function Hadiths() {
 
             <View style={styles.sliderContainer}>
               <Text style={styles.sliderLabel}>
-                আরবি ফন্ট সাইজ: {arabicFontSize}
+                আরবি ফন্ট সাইজ: {localArabicFontSize}
               </Text>
               <Slider
                 style={{ width: "100%", height: 40 }}
                 minimumValue={14}
                 maximumValue={30}
                 step={1}
-                value={arabicFontSize}
-                onValueChange={(value) => setArabicFontSize(value)}
+                value={localArabicFontSize}
+                onValueChange={(value) => setLocalArabicFontSize(value)}
+                onSlidingComplete={(value) =>
+                  updateSetting("arabicFontSize", value)
+                }
                 minimumTrackTintColor="#037764"
                 maximumTrackTintColor="#d3d3d3"
+                thumbTintColor="#037764"
               />
             </View>
 
             <View style={styles.sliderContainer}>
               <Text style={styles.sliderLabel}>
-                বাংলা ফন্ট সাইজ: {banglaFontSize}
+                বাংলা ফন্ট সাইজ: {localBanglaFontSize}
               </Text>
               <Slider
                 style={{ width: "100%", height: 40 }}
                 minimumValue={12}
                 maximumValue={24}
                 step={1}
-                value={banglaFontSize}
-                onValueChange={(value) => setBanglaFontSize(value)}
+                value={localBanglaFontSize}
+                onValueChange={(value) => setLocalBanglaFontSize(value)}
+                onSlidingComplete={(value) =>
+                  updateSetting("banglaFontSize", value)
+                }
                 minimumTrackTintColor="#037764"
                 maximumTrackTintColor="#d3d3d3"
+                thumbTintColor="#037764"
               />
             </View>
 
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={() => setModalVisible(!modalVisible)}
+              onPress={() => setModalVisible(false)}
             >
               <Text style={styles.closeButtonText}>ঠিক আছে</Text>
             </TouchableOpacity>
@@ -218,7 +226,7 @@ export default function Hadiths() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ecf0f2',
+    backgroundColor: "#ecf0f2",
   },
   listContent: {
     padding: 10,
@@ -294,7 +302,6 @@ const styles = StyleSheet.create({
     color: "red",
     textAlign: "center",
   },
-  // Modal styles
   centeredView: {
     flex: 1,
     justifyContent: "center",

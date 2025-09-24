@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 
+import useSettingsStore from "../../../../store/settingsStore"; // Zustand থেকে ফন্ট সাইজ নিবেন
+
 export default function DuaDetailsScreen() {
   const { catName, subCatName, currentIndex, duas } = useLocalSearchParams();
   const [currentDuaIndex, setCurrentDuaIndex] = useState(
@@ -21,8 +23,13 @@ export default function DuaDetailsScreen() {
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [duasData, setDuasData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [banglaFontSize, setBanglaFontSize] = useState(14);
-  const [arabicFontSize, setArabicFontSize] = useState(20);
+
+  // Zustand থেকে ফন্ট সাইজ ও আপডেট ফাংশন নেওয়া
+  const { banglaFontSize, arabicFontSize, updateSetting } = useSettingsStore();
+
+  // মডালের জন্য লোকাল ফন্ট সাইজ স্টেট
+  const [localBanglaFontSize, setLocalBanglaFontSize] = useState(banglaFontSize);
+  const [localArabicFontSize, setLocalArabicFontSize] = useState(arabicFontSize);
 
   useEffect(() => {
     try {
@@ -37,6 +44,14 @@ export default function DuaDetailsScreen() {
       setLoading(false);
     }
   }, [duas]);
+
+  // মডাল ওপেন হলে Zustand থেকে লোকাল স্টেট আপডেট
+  useEffect(() => {
+    if (settingsModalVisible) {
+      setLocalBanglaFontSize(banglaFontSize);
+      setLocalArabicFontSize(arabicFontSize);
+    }
+  }, [settingsModalVisible, banglaFontSize, arabicFontSize]);
 
   const enToBnNumber = (number) => {
     if (number === undefined || number === null) return "";
@@ -57,9 +72,7 @@ export default function DuaDetailsScreen() {
       <View style={styles.duaContentContainer}>
         <View style={styles.duaHeader}>
           <View style={styles.avatar}>
-            <Text style={[styles.avatarText]}>
-              {enToBnNumber(dua.dua_id || "")}
-            </Text>
+            <Text style={[styles.avatarText]}>{enToBnNumber(dua.dua_id || "")}</Text>
           </View>
           <Text style={[styles.duaName]}>{dua.dua_name_bn || ""}</Text>
         </View>
@@ -67,7 +80,7 @@ export default function DuaDetailsScreen() {
         {dua.top_bn && (
           <>
             <View style={styles.spacer} />
-            <Text style={[styles.text, { fontSize: banglaFontSize }]}>
+            <Text style={[styles.text, { fontSize: localBanglaFontSize }]}>
               {dua.top_bn}
             </Text>
           </>
@@ -76,7 +89,7 @@ export default function DuaDetailsScreen() {
         {dua.dua_arabic && (
           <>
             <View style={styles.spacer} />
-            <Text style={[styles.arabicText, { fontSize: arabicFontSize }]}>
+            <Text style={[styles.arabicText, { fontSize: localArabicFontSize }]}>
               {dua.dua_arabic}
             </Text>
           </>
@@ -85,7 +98,7 @@ export default function DuaDetailsScreen() {
         {dua.transliteration_bn && (
           <>
             <View style={styles.spacer} />
-            <Text style={[styles.text, { fontSize: banglaFontSize }]}>
+            <Text style={[styles.text, { fontSize: localBanglaFontSize }]}>
               {dua.transliteration_bn}
             </Text>
           </>
@@ -94,7 +107,7 @@ export default function DuaDetailsScreen() {
         {dua.translation_bn && (
           <>
             <View style={styles.spacer} />
-            <Text style={[styles.text, { fontSize: banglaFontSize }]}>
+            <Text style={[styles.text, { fontSize: localBanglaFontSize }]}>
               {dua.translation_bn}
             </Text>
           </>
@@ -103,7 +116,7 @@ export default function DuaDetailsScreen() {
         {dua.bottom_bn && (
           <>
             <View style={styles.spacer} />
-            <Text style={[styles.text, { fontSize: banglaFontSize }]}>
+            <Text style={[styles.text, { fontSize: localBanglaFontSize }]}>
               {dua.bottom_bn}
             </Text>
           </>
@@ -113,7 +126,7 @@ export default function DuaDetailsScreen() {
           <>
             <View style={styles.spacer} />
             <Text style={[styles.referenceTitle]}>রেফারেন্সঃ</Text>
-            <Text style={[styles.text, { fontSize: banglaFontSize }]}>
+            <Text style={[styles.text, { fontSize: localBanglaFontSize }]}>
               {dua.reference_bn}
             </Text>
           </>
@@ -151,7 +164,7 @@ export default function DuaDetailsScreen() {
               onPress={() => setSettingsModalVisible(true)}
               style={styles.settingsButton}
             >
-              <Ionicons name='settings-outline' size={20} color='#037764'/>
+              <Ionicons name="settings-outline" size={20} color="#037764" />
             </TouchableOpacity>
           ),
         }}
@@ -166,10 +179,7 @@ export default function DuaDetailsScreen() {
       <View style={styles.spacer} />
 
       <View style={styles.scrollContainer}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        >
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           {renderDuaContent(currentDua)}
         </ScrollView>
       </View>
@@ -178,10 +188,7 @@ export default function DuaDetailsScreen() {
         <TouchableOpacity
           onPress={() => setCurrentDuaIndex((prev) => Math.max(0, prev - 1))}
           disabled={currentDuaIndex === 0}
-          style={[
-            styles.navButton,
-            currentDuaIndex === 0 && styles.disabledButton,
-          ]}
+          style={[styles.navButton, currentDuaIndex === 0 && styles.disabledButton]}
         >
           <Text style={styles.navButtonText}>← পূর্বের</Text>
         </TouchableOpacity>
@@ -191,11 +198,7 @@ export default function DuaDetailsScreen() {
         </Text>
 
         <TouchableOpacity
-          onPress={() =>
-            setCurrentDuaIndex((prev) =>
-              Math.min(duasData.length - 1, prev + 1)
-            )
-          }
+          onPress={() => setCurrentDuaIndex((prev) => Math.min(duasData.length - 1, prev + 1))}
           disabled={currentDuaIndex === duasData.length - 1}
           style={[
             styles.navButton,
@@ -206,6 +209,7 @@ export default function DuaDetailsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* ফন্ট সেটিংস মডাল */}
       <Modal
         visible={settingsModalVisible}
         animationType="slide"
@@ -221,28 +225,26 @@ export default function DuaDetailsScreen() {
               style={styles.slider}
               minimumValue={14}
               maximumValue={20}
-              value={banglaFontSize}
-              onValueChange={(value) => setBanglaFontSize(value)}
+              value={localBanglaFontSize}
+              onValueChange={(value) => setLocalBanglaFontSize(value)}
+              onSlidingComplete={(value) => updateSetting("banglaFontSize", value)}
               minimumTrackTintColor="#00897B"
               maximumTrackTintColor="#000000"
             />
-            <Text style={styles.sliderValue}>
-              {enToBnNumber(Math.round(banglaFontSize))}
-            </Text>
+            <Text style={styles.sliderValue}>{enToBnNumber(Math.round(localBanglaFontSize))}</Text>
 
             <Text style={styles.sliderLabel}>আরবি ফন্ট সাইজ:</Text>
             <Slider
               style={styles.slider}
               minimumValue={16}
               maximumValue={40}
-              value={arabicFontSize}
-              onValueChange={(value) => setArabicFontSize(value)}
+              value={localArabicFontSize}
+              onValueChange={(value) => setLocalArabicFontSize(value)}
+              onSlidingComplete={(value) => updateSetting("arabicFontSize", value)}
               minimumTrackTintColor="#00897B"
               maximumTrackTintColor="#000000"
             />
-            <Text style={styles.sliderValue}>
-              {enToBnNumber(Math.round(arabicFontSize))}
-            </Text>
+            <Text style={styles.sliderValue}>{enToBnNumber(Math.round(localArabicFontSize))}</Text>
 
             <TouchableOpacity
               onPress={() => setSettingsModalVisible(false)}
@@ -260,7 +262,7 @@ export default function DuaDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ecf0f2',
+    backgroundColor: "#ecf0f2",
   },
   centerContainer: {
     flex: 1,
@@ -283,25 +285,8 @@ const styles = StyleSheet.create({
     color: "#f44336",
     fontFamily: "bangla_regular",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#ecf0f2",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    fontFamily: "bangla_bold",
-  },
   settingsButton: {
     padding: 8,
-  },
-  settingsIcon: {
-    fontSize: 16,
   },
   subCategoryContainer: {
     backgroundColor: "white",
@@ -369,7 +354,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
     fontSize: 20,
     lineHeight: 32,
-    fontFamily: "Traditional Arabic",
+    fontFamily: "arabic",
   },
   referenceTitle: {
     fontSize: 16,

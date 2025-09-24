@@ -16,6 +16,7 @@ import * as FileSystem from "expo-file-system";
 import { Ionicons } from "@expo/vector-icons";
 import getLocalDateString from "../../../utils/getLocalDateString";
 
+
 export default function AskAge() {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -23,9 +24,9 @@ export default function AskAge() {
   const [showPicker, setShowPicker] = useState(false);
   const [age, setAge] = useState(null);
   const [name, setName] = useState("");
-  const [user,setUser] = useState({})
+  const [user,setUser] = useState({});
 
-  // Load saved user data on component mount
+
   useEffect(() => {
     const loadUserData = async () => {
       try {
@@ -37,8 +38,7 @@ export default function AskAge() {
           const fileContent = await FileSystem.readAsStringAsync(fileUri);
           const userData = JSON.parse(fileContent);
 
-          setUser(userData)
-          
+          setUser(userData);
           setName(userData.name || "");
           if (userData.birthDate) {
             const parsedDate = new Date(userData.birthDate);
@@ -54,6 +54,7 @@ export default function AskAge() {
     loadUserData();
   }, []);
 
+
   const calculateAge = (birthDate) => {
     const today = new Date();
     let years = today.getFullYear() - birthDate.getFullYear();
@@ -66,6 +67,7 @@ export default function AskAge() {
     return years;
   };
 
+
   const onChange = async (event, selectedDate) => {
     setShowPicker(false);
     if (selectedDate) {
@@ -74,9 +76,9 @@ export default function AskAge() {
     }
   };
 
+
   const saveUserData = async () => {
     try {
-      // Create app directory if it doesn't exist
       const appDir = `${FileSystem.documentDirectory}app_dir`;
       const dirInfo = await FileSystem.getInfoAsync(appDir);
 
@@ -84,16 +86,14 @@ export default function AskAge() {
         await FileSystem.makeDirectoryAsync(appDir, { intermediates: true });
       }
 
-      // Prepare user data
       const userData = {
         ...user,
-        name : name,
+        name: name,
         birthDate: date.toISOString(),
         age,
         createdAt: params.init === 'no' ? user?.createdAt : getLocalDateString(),
       };
 
-      // Save to JSON file
       await FileSystem.writeAsStringAsync(
         `${appDir}/user_data.json`,
         JSON.stringify(userData)
@@ -105,6 +105,7 @@ export default function AskAge() {
       throw error;
     }
   };
+
 
   const handleContinue = async () => {
     if (!name.trim()) {
@@ -132,13 +133,15 @@ export default function AskAge() {
     }
   };
 
+
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"} 
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
       style={styles.container}
     >
       <View style={styles.mainContent}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
             <Text style={styles.title}>আপনার তথ্য প্রদান করুন</Text>
             <Text style={styles.subtitle}>
@@ -225,6 +228,7 @@ export default function AskAge() {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -237,7 +241,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     padding: 25,
     paddingTop: 40,
-    paddingBottom: 100,
+    paddingBottom: 30, // Changed from 100 to 30 to reduce extra bottom padding
   },
   header: {
     marginBottom: 30,

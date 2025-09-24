@@ -169,7 +169,7 @@ export default function HadithRead() {
           >
             <Text style={styles.sectionTitle}>হাদিস পড়া ট্র্যাকার</Text>
             <TouchableOpacity
-              onPress={() => router.push("/pages/hadith")}
+              onPress={() => router.push("/pages/education/hadith")}
               style={{
                 borderWidth: 1,
                 borderColor: "#037764",

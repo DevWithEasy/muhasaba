@@ -1,4 +1,5 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -12,8 +13,7 @@ import {
   View,
 } from "react-native";
 import RenderHtml, { defaultSystemFonts } from "react-native-render-html";
-import { useFontSize } from "../../../../contexts/FontSizeContext";
-import { Ionicons } from "@expo/vector-icons";
+import useSettingsStore from "../../../../store/settingsStore"; // Zustand store থেকে আনা হলো
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const systemFonts = [...defaultSystemFonts, "bangla_regular"];
@@ -22,14 +22,14 @@ export default function SalahTopicsDetailScreen() {
   const { catName, subCatName, currentIndex, topics, topicsDetails } =
     useLocalSearchParams();
 
-  const router = useRouter();
-  const { banglaFontSize, updateBanglaFontSize } = useFontSize();
-
   const [currentPageIndex, setCurrentPageIndex] = useState(
     parseInt(currentIndex) || 0
   );
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const modalAnimation = useRef(new Animated.Value(0)).current;
+
+  // Zustand থেকে ফন্ট সাইজ রিডার এবং আপডেটার
+  const { banglaFontSize, updateSetting } = useSettingsStore();
 
   const parsedTopics = topics ? JSON.parse(topics) : [];
   const parsedTopicsDetails = topicsDetails ? JSON.parse(topicsDetails) : [];
@@ -148,7 +148,7 @@ export default function SalahTopicsDetailScreen() {
     <View style={styles.sliderContainer}>
       <Text style={styles.sliderTitle}>{title}</Text>
       <View style={styles.sliderRow}>
-        <Text style={styles.sliderValue}>{value.toFixed(1)}</Text>
+        <Text style={styles.sliderValue}>{value.toFixed(0)}</Text>
         <View style={styles.sliderWrapper}>
           <TouchableOpacity
             style={styles.sliderButton}
@@ -177,6 +177,11 @@ export default function SalahTopicsDetailScreen() {
     </View>
   );
 
+  // নতুন হ্যান্ডলার: Zustand থেকে updateSetting কল করা হবে
+  const onBanglaFontSizeChange = (value) => {
+    updateSetting("banglaFontSize", value);
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -193,10 +198,8 @@ export default function SalahTopicsDetailScreen() {
         }}
       />
 
-      {/* Content */}
       {renderContent()}
 
-      {/* Page Indicators */}
       <View style={styles.pageIndicatorContainer}>
         <Text style={styles.pageIndicatorText}>
           পৃষ্ঠা {(currentPageIndex + 1).toLocaleString("bn-BD")} /{" "}
@@ -232,7 +235,6 @@ export default function SalahTopicsDetailScreen() {
         </View>
       </View>
 
-      {/* Settings Modal */}
       <Modal
         visible={showSettingsModal}
         transparent
@@ -247,19 +249,18 @@ export default function SalahTopicsDetailScreen() {
             ]}
             {...panResponder.panHandlers}
           >
-            {/* Drag handle */}
             <View style={styles.dragHandle} />
-
             <Text style={styles.modalTitle}>ফন্ট সেটিংস</Text>
             <View style={styles.divider} />
 
             <View style={styles.modalBody}>
+              {/* বাংলা ফন্ট সাইজ স্লাইডার */}
               <FontSlider
                 title="বাংলা ফন্ট সাইজ"
                 value={banglaFontSize}
-                onValueChange={updateBanglaFontSize}
+                onValueChange={onBanglaFontSizeChange}
                 min={12}
-                max={24}
+                max={30}
               />
             </View>
 
@@ -370,6 +371,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     minWidth: 40,
+    textAlign: "center",
   },
   sliderWrapper: {
     flex: 1,

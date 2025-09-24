@@ -146,7 +146,6 @@ export default function AskPrayerYear() {
       Alert.alert("ত্রুটি", "ডেটা সংরক্ষণ করতে সমস্যা হয়েছে");
     }
   };
-  console.log(params.init);
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}

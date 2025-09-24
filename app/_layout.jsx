@@ -120,14 +120,6 @@ export default function RootLayout() {
             />
 
             <Stack.Screen
-              name="pages/education/salah/"
-              options={{
-                title: "নামায শিক্ষা",
-                headerBackTitle: "পিছনে",
-              }}
-            />
-
-            <Stack.Screen
               name="pages/education/salah/salah-topics"
               options={{
                 title: "অধ্যায় সমূহ",
