@@ -4,16 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useCallback } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import * as Notifications from "expo-notifications";
 import { FontSizeProvider } from "../contexts/FontSizeContext";
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowAlert: true,
-  }),
-});
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -116,6 +107,30 @@ export default function RootLayout() {
               name="pages/prayer"
               options={{
                 title: "নামাজের সময়সূচী",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/education/salah/index"
+              options={{
+                title: "নামায শিক্ষা",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/education/salah/"
+              options={{
+                title: "নামায শিক্ষা",
+                headerBackTitle: "পিছনে",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/education/salah/salah-topics"
+              options={{
+                title: "অধ্যায় সমূহ",
                 headerBackTitle: "পিছনে",
               }}
             />
@@ -249,6 +264,13 @@ export default function RootLayout() {
                 headerBackTitle: "পিছনে",
               }}
             />
+            <Stack.Screen
+              name="pages/education/dua/index"
+              options={{
+                title: "দোয়া সমূহ",
+                headerBackTitle: "পিছনে",
+              }}
+            />
 
             {/* Dhikr Screens */}
             <Stack.Screen
@@ -328,7 +350,7 @@ export default function RootLayout() {
             <Stack.Screen
               name="pages/todo"
               options={{
-                title: "আমলের তালিকা",
+                title: "টুডু তালিকা",
                 headerShown: false,
               }}
             />

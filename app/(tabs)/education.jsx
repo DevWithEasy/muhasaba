@@ -69,10 +69,10 @@ export default function Education() {
       iconKey: "kalima",
       route: "/pages/education/kalima",
       description: "কালিমা শিক্ষা",
-    },
+    }
   ];
 
-  const itemWidth = (width - 48) / 2; // Reduced padding for better spacing
+  const itemWidth = (width - 48) / 2; 
 
   const renderGridItem = ({ item, index }) => (
     <View style={[styles.itemWrapper, { width: itemWidth }]}>

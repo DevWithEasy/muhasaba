@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -68,7 +68,7 @@ export default function SalahTopicsScreen() {
 
   const renderTopicItem = ({ item, index }) => {
     const imageSource = imageMap[item.image];
-    
+
     return (
       <TouchableOpacity
         key={item.id}
@@ -82,9 +82,7 @@ export default function SalahTopicsScreen() {
           <View style={styles.topicInfo}>
             <Text style={styles.topicName}>{item.title}</Text>
             <View style={styles.detailsContainer}>
-              <Text style={styles.topicDetails}>
-                {item.description}
-              </Text>
+              <Text style={styles.topicDetails}>{item.description}</Text>
             </View>
           </View>
         </View>
@@ -110,10 +108,17 @@ export default function SalahTopicsScreen() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          title: cateName || "অধ্যায় সমূহ",
+        }}
+      />
       <FlatList
         data={topics}
         renderItem={renderTopicItem}
-        keyExtractor={(item) => item.id ? item.id.toString() : Math.random().toString()}
+        keyExtractor={(item) =>
+          item.id ? item.id.toString() : Math.random().toString()
+        }
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
       />
@@ -124,13 +129,13 @@ export default function SalahTopicsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ecf0f2',
+    backgroundColor: "#ecf0f2",
   },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#ecf0f2',
+    backgroundColor: "#ecf0f2",
   },
   listContainer: {
     padding: 16,
@@ -144,7 +149,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderRadius: 8,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 1,
@@ -182,7 +187,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "arabic_regular",
     color: "#979797",
-    textAlign: 'right',
+    textAlign: "right",
   },
   detailsContainer: {
     flexDirection: "row",

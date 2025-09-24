@@ -64,7 +64,14 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     marginBottom: 8,
     borderRadius: 8,
-    elevation: 0.3,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   surahContainer: {
     flexDirection: "row",

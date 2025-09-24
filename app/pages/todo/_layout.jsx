@@ -1,9 +1,10 @@
 // app/(tabs)/_layout.js
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
-import { Text } from "react-native";
+import { Tabs, useRouter } from "expo-router";
+import { Text, TouchableOpacity } from "react-native";
 
 export default function TodoLayout() {
+  const router = useRouter();
   return (
     <Tabs
       screenOptions={{
@@ -45,6 +46,9 @@ export default function TodoLayout() {
               color={color}
             />
           ),
+          headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="arrow-back-outline" size={24} color="#037764" style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
         }}
       />
       <Tabs.Screen
@@ -63,6 +67,9 @@ export default function TodoLayout() {
               color={color}
             />
           ),
+          headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="arrow-back-outline" size={24} color="#037764" style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
         }}
       />
       <Tabs.Screen
@@ -81,6 +88,9 @@ export default function TodoLayout() {
               color={color}
             />
           ),
+          headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="arrow-back-outline" size={24} color="#037764" style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
         }}
       />
     </Tabs>

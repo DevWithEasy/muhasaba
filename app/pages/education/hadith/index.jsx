@@ -125,16 +125,28 @@ const HadithScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ecf0f2',
   },
   scrollContainer: {
     padding: 16,
     paddingTop: 8,
   },
   bookItem: {
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderBottomWidth: 0.5,
+    borderColor: "#e0e0e0",
+    backgroundColor: "white",
     marginBottom: 8,
     borderRadius: 8,
-    backgroundColor : '#ffffff'
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   bookContent: {
     flexDirection: 'row',

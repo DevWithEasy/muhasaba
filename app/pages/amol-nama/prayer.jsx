@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: "#f8fafc",
+    backgroundColor: '#ecf0f2',
   },
   errorText: {
     fontFamily: "bangla_medium",

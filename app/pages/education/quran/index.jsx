@@ -182,6 +182,7 @@ export default function Quran() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ecf0f2',
   },
   listContent: {
     padding: 10,

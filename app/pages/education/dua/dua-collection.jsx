@@ -1,7 +1,9 @@
-import * as FileSystem from "expo-file-system";
+import { Ionicons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   Modal,
   ScrollView,
@@ -9,9 +11,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
-import Slider from "@react-native-community/slider";
 
 export default function DuaDetailsScreen() {
   const { catName, subCatName, currentIndex, duas } = useLocalSearchParams();
@@ -151,7 +151,7 @@ export default function DuaDetailsScreen() {
               onPress={() => setSettingsModalVisible(true)}
               style={styles.settingsButton}
             >
-              <Text style={styles.settingsIcon}>⚙️</Text>
+              <Ionicons name='settings-outline' size={20} color='#037764'/>
             </TouchableOpacity>
           ),
         }}
@@ -260,7 +260,7 @@ export default function DuaDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: '#ecf0f2',
   },
   centerContainer: {
     flex: 1,

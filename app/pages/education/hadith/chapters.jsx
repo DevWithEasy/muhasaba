@@ -13,7 +13,7 @@ export default function Chapters() {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1,backgroundColor: '#ecf0f2', }}>
       <Stack.Screen 
         options={{ 
           title: name,

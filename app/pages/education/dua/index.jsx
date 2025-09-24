@@ -190,7 +190,7 @@ export default function Index () {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#ecf0f2',
   },
   scrollView: {
     flex: 1,
@@ -201,15 +201,21 @@ const styles = StyleSheet.create({
   categoryCard: {
     flexDirection: "row",
     alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderBottomWidth: 0.5,
+    borderColor: "#e0e0e0",
     backgroundColor: "white",
+    marginBottom: 8,
     borderRadius: 8,
-    padding: 18,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 0.8,
   },
   categoryInfo: {
     flex: 1,

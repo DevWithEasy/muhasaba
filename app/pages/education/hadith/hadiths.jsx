@@ -218,7 +218,7 @@ export default function Hadiths() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#ecf0f2',
   },
   listContent: {
     padding: 10,

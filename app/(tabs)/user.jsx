@@ -32,6 +32,7 @@ export default function Profile() {
 
   useEffect(() => {
     const loadProfileData = async () => {
+      setLoading(true);
       try {
         const fileInfo = await FileSystem.getInfoAsync(PROFILE_FILE);
         if (!fileInfo.exists) {
@@ -48,9 +49,11 @@ export default function Profile() {
 
         // UI আপডেট করুন
         setNotificationsEnabled(hasPermission);
+        setLoading(false);
       } catch (err) {
         console.error("প্রোফাইল ডাটা লোড করতে সমস্যা:", err);
         setError(err.message);
+        setLoading(false);
       } finally {
         setLoading(false);
         setCheckingPermission(false);

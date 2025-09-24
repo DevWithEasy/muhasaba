@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  StyleSheet,
-  Alert,
-} from "react-native";
 import * as FileSystem from "expo-file-system";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const DUA_DIR = FileSystem.documentDirectory + "app_dir/dua/";
 const SUBCATEGORY_FILE = DUA_DIR + "sub_category.json";
@@ -229,7 +229,7 @@ export default function SubCategoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#ecf0f2',
   },
   header: {
     padding: 16,
@@ -260,15 +260,21 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   categoryCard: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderBottomWidth: 0.5,
+    borderColor: "#e0e0e0",
     backgroundColor: "white",
+    marginBottom: 8,
     borderRadius: 8,
-    marginBottom: 12,
-    padding: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 0.8,
   },
   categoryHeader: {
     flexDirection: "row",
