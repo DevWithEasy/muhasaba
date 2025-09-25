@@ -14,7 +14,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 const SIGNATURE = "MUHASABA_APP_BACKUP_SIGNATURE";
@@ -154,13 +154,49 @@ export default function Restore() {
       <View style={styles.content}>
         <View style={styles.header}>
           <View style={styles.iconCircle}>
-            <Ionicons name="cloud-upload" size={36} color="#037764" />
+            <Ionicons
+              name={
+                isValidFile === null
+                  ? "cloud-upload"
+                  : isValidFile
+                  ? "shield-checkmark"
+                  : "warning"
+              }
+              size={36}
+              color={
+                isValidFile === null
+                  ? "#037764"
+                  : isValidFile
+                  ? "#28a745"
+                  : "red"
+              }
+            />
           </View>
-          <Text style={styles.title}>রিস্টোর ডাটা</Text>
+          <Text
+            style={[
+              styles.title,
+              {
+                color:
+                  isValidFile === null
+                    ? "#037764"
+                    : isValidFile
+                    ? "#28a745"
+                    : "red",
+              },
+            ]}
+          >
+            {isValidFile === null
+              ? "রিস্টোর ডাটা"
+              : isValidFile
+              ? "বৈধ ফাইল"
+              : "অবৈধ ফাইল"}
+          </Text>
           <Text style={styles.subtitle}>
-            আপনার অ্যাপের সমস্ত ডেটা এবং সেটিংস পুনরুদ্ধার করতে আপনার ব্যাকআপ
-            ফাইলটি নির্বাচন করুন। আপনি যেন একটি বিশ্বস্ত উৎস থেকে পুনরুদ্ধার
-            করছেন, তা নিশ্চিত করুন।
+            {isValidFile === null
+              ? "আপনার অ্যাপের সমস্ত ডেটা এবং সেটিংস পুনরুদ্ধার করতে আপনার ব্যাকআপ ফাইলটি নির্বাচন করুন। আপনি যেন একটি বিশ্বস্ত উৎস থেকে পুনরুদ্ধার করছেন, তা নিশ্চিত করুন।"
+              : isValidFile
+              ? "আপনার ব্যাকআপ ফাইলটি বৈধ। আপনি এখন আপনার ডেটা রিস্টোর করতে পারেন।"
+              : "নির্বাচিত ফাইলটি বৈধ নয়। অন্য একটি ফাইল নির্বাচন করুন।"}
           </Text>
         </View>
 
@@ -181,7 +217,11 @@ export default function Restore() {
 
         {isValidFile === true && (
           <TouchableOpacity
-            style={[styles.button, styles.restoreButton, isProcessing && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              styles.restoreButton,
+              isProcessing && styles.buttonDisabled,
+            ]}
             onPress={handleRestore}
             disabled={isProcessing}
           >
@@ -193,14 +233,9 @@ export default function Restore() {
           </TouchableOpacity>
         )}
 
-        {isValidFile === false && (
-          <Text style={styles.errorText}>
-            নির্বাচিত ফাইলটি বৈধ নয়। অন্য একটি ফাইল নির্বাচন করুন।
-          </Text>
-        )}
-
         <Text style={styles.note}>
-          দ্রষ্টব্য: এটি আপনার বর্তমান ডেটা মুছে ফেলবে। প্রয়োজনে আপনার কাছে একটি ব্যাকআপ আছে কিনা, তা নিশ্চিত করুন।
+          দ্রষ্টব্য: এটি আপনার বর্তমান ডেটা মুছে ফেলবে। প্রয়োজনে আপনার কাছে
+          একটি ব্যাকআপ আছে কিনা, তা নিশ্চিত করুন।
         </Text>
       </View>
     </View>
@@ -246,7 +281,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   subtitle: {
-    fontFamily : 'bangla_regular',
+    fontFamily: "bangla_regular",
     color: "#6c757d",
     lineHeight: 24,
     maxWidth: "90%",
@@ -286,7 +321,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   note: {
-    fontFamily : 'bangla_regular',
+    fontFamily: "bangla_regular",
     fontSize: 12,
     color: "#adb5bd",
     textAlign: "center",
