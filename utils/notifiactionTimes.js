@@ -79,7 +79,7 @@ export default function notificationTimes(prayerTimes, nextDayFajrTime = null) {
         title: "সাইয়িদুল ইস্তিগফার",
         body: "দিনের শেষে সাইয়িদুল ইস্তিগফার পড়ুন। এটি আপনার দিনের গুনাহ মাফ করে এবং শান্তি প্রদান করে।",
       },
-      route: "/pages/istighfer",
+      route: "/pages/istighfar",
     },
     {
       name: "isha",
@@ -98,6 +98,15 @@ export default function notificationTimes(prayerTimes, nextDayFajrTime = null) {
         body: "যে ব্যক্তি রাতে ঘুমানোর আগে সবাইকে ক্ষমা করে দেয়, আল্লাহ তাকে ক্ষমা করে দেন এবং শান্তি দান করেন।",
       },
       route: "/pages/education/dua",
+    },
+    {
+      name: "tahajjud",
+      time: prayerTimes.Lastthird,
+      content: {
+        title: "তাহাজ্জুদের সময়",
+        body: "আমাদের মহামহিম রব প্রতি রাতের শেষ তৃতীয়াংশে দুনিয়ার নিকটবর্তী আসমানে নেমে ঘোষণা করতে থাকেন, “কে আছে ডাকবে আমি সাড়া দেবো? কে আছে কিছু চাইবে আমি দেবো? কে আছে ক্ষমা চাইবে আমি ক্ষমা করব?” [সহিহ বুখারি, কিতাবুত তাহাজ্জুদ : ১১৪৫; সহিহ মুসলিম",
+      },
+      route: "/",
     },
   ];
 
