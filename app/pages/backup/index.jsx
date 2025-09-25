@@ -1,3 +1,4 @@
+// Backup.js (আপডেটেড)
 import { Ionicons } from "@expo/vector-icons";
 import { Buffer } from "buffer";
 import * as FileSystem from "expo-file-system";
@@ -17,6 +18,7 @@ import {
 
 const APP_DIR = FileSystem.documentDirectory + "app_dir";
 const BACKUP_DIR = FileSystem.documentDirectory + "backups";
+const SIGNATURE = "MUHASABA_APP_BACKUP_SIGNATURE";
 
 export default function Backup() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -71,6 +73,9 @@ export default function Backup() {
           "কিছু ফাইল পড়া যায়নি, ব্যাকআপটি অসম্পূর্ণ হতে পারে"
         );
       }
+
+      // Add signature file in backup
+      fileContents["app_signature.txt"] = Buffer.from(SIGNATURE);
 
       const zipData = fflate.zipSync(fileContents);
       const zipBuffer = Buffer.from(zipData.buffer);

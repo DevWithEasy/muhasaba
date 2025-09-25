@@ -1,3 +1,4 @@
+// Restore.js (আপডেটেড)
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Buffer } from "buffer";
@@ -16,13 +17,26 @@ import {
   View
 } from "react-native";
 
+const SIGNATURE = "MUHASABA_APP_BACKUP_SIGNATURE";
+
 export default function Restore() {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isValidFile, setIsValidFile] = useState(null); // null = no file, true/false = validation result
+  const [unzippedFiles, setUnzippedFiles] = useState(null);
   const router = useRouter();
 
-  const handleUnzip = async () => {
+  const validateBackupSignature = (files) => {
+    // Check if the signature file exists and contains expected signature text
+    if (!files["app_signature.txt"]) return false;
+    const fileData = Buffer.from(files["app_signature.txt"]).toString("utf-8");
+    return fileData === SIGNATURE;
+  };
+
+  const handleFilePick = async () => {
     try {
       setIsProcessing(true);
+      setIsValidFile(null);
+      setUnzippedFiles(null);
 
       // 1. Pick the ZIP file
       const result = await DocumentPicker.getDocumentAsync({
@@ -31,6 +45,7 @@ export default function Restore() {
       });
 
       if (result.type === "cancel") {
+        setIsProcessing(false);
         return;
       }
 
@@ -66,42 +81,69 @@ export default function Restore() {
       const buffer = Buffer.from(fileContent, "base64");
       const uint8Array = new Uint8Array(buffer);
 
-      // 4. Create app directory
+      // 4. Unzip files
+      const unzipped = await new Promise((resolve, reject) => {
+        unzip(uint8Array, (err, unzippedFiles) => {
+          if (err) return reject(err);
+          resolve(unzippedFiles);
+        });
+      });
+
+      // 5. Validate Signature
+      const isValid = validateBackupSignature(unzipped);
+      setIsValidFile(isValid);
+
+      if (isValid) {
+        setUnzippedFiles(unzipped);
+      } else {
+        Alert.alert(
+          "অবৈধ ফাইল",
+          "এই ফাইলটি আপনার অ্যাপের জন্য বৈধ ব্যাকআপ ফাইল নয়। দয়া করে সঠিক ফাইল নির্বাচন করুন।"
+        );
+      }
+    } catch (error) {
+      console.error("Error unzipping file:", error);
+      Alert.alert("ত্রুটি", `ফাইল আনজিপ করতে ব্যর্থ হয়েছে: ${error.message}`);
+      setIsValidFile(false);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!unzippedFiles) return;
+    setIsProcessing(true);
+
+    try {
       const appDir = `${FileSystem.documentDirectory}app_dir`;
       const dirInfo = await FileSystem.getInfoAsync(appDir);
 
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(appDir, { intermediates: true });
       }
-
-      // 5. Unzip using fflate
-      await new Promise((resolve, reject) => {
-        unzip(uint8Array, (err, unzipped) => {
-          if (err) return reject(err);
-
-          const savePromises = Object.entries(unzipped).map(
-            async ([filename, data]) => {
-              const filePath = `${appDir}/${filename}`;
-              await FileSystem.writeAsStringAsync(
-                filePath,
-                Buffer.from(data).toString("base64"),
-                {
-                  encoding: FileSystem.EncodingType.Base64,
-                }
-              );
+      // Save all files except the signature file
+      const savePromises = Object.entries(unzippedFiles)
+        .filter(([filename]) => filename !== "app_signature.txt")
+        .map(async ([filename, data]) => {
+          const filePath = `${appDir}/${filename}`;
+          await FileSystem.writeAsStringAsync(
+            filePath,
+            Buffer.from(data).toString("base64"),
+            {
+              encoding: FileSystem.EncodingType.Base64,
             }
           );
-
-          Promise.all(savePromises).then(resolve).catch(reject);
         });
-      });
 
-      Alert.alert("Success", "Files have been extracted successfully!");
+      await Promise.all(savePromises);
+
+      Alert.alert("সফল", "ডেটা সফলভাবে রিস্টোর হয়েছে!");
+
       await AsyncStorage.setItem("is-first-install", "1");
       router.push("/");
     } catch (error) {
-      console.error("Error unzipping file:", error);
-      Alert.alert("Error", `Failed to extract files: ${error.message}`);
+      console.error("Restore error:", error);
+      Alert.alert("ত্রুটি", "ডেটা রিস্টোর করতে ব্যর্থ হয়েছে");
     } finally {
       setIsProcessing(false);
     }
@@ -124,7 +166,7 @@ export default function Restore() {
 
         <TouchableOpacity
           style={[styles.button, isProcessing && styles.buttonDisabled]}
-          onPress={handleUnzip}
+          onPress={handleFilePick}
           disabled={isProcessing}
         >
           {isProcessing ? (
@@ -136,6 +178,26 @@ export default function Restore() {
             </>
           )}
         </TouchableOpacity>
+
+        {isValidFile === true && (
+          <TouchableOpacity
+            style={[styles.button, styles.restoreButton, isProcessing && styles.buttonDisabled]}
+            onPress={handleRestore}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.buttonText}>রিস্টোর করুন</Text>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {isValidFile === false && (
+          <Text style={styles.errorText}>
+            নির্বাচিত ফাইলটি বৈধ নয়। অন্য একটি ফাইল নির্বাচন করুন।
+          </Text>
+        )}
 
         <Text style={styles.note}>
           দ্রষ্টব্য: এটি আপনার বর্তমান ডেটা মুছে ফেলবে। প্রয়োজনে আপনার কাছে একটি ব্যাকআপ আছে কিনা, তা নিশ্চিত করুন।
@@ -199,12 +261,16 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: "100%",
     maxWidth: 300,
-    marginBottom: 24,
+    marginBottom: 16,
     shadowColor: "#6a11cb",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 2,
+  },
+  restoreButton: {
+    backgroundColor: "#28a745",
+    shadowColor: "#28a745",
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -213,6 +279,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontFamily: "bangla_medium",
     marginLeft: 10,
+  },
+  errorText: {
+    color: "red",
+    fontFamily: "bangla_medium",
+    marginBottom: 16,
   },
   note: {
     fontFamily : 'bangla_regular',

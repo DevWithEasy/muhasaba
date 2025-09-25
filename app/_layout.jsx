@@ -264,6 +264,20 @@ export default function RootLayout() {
               }}
             />
 
+            <Stack.Screen
+              name="pages/education/kalima"
+              options={{
+                title: "কালিমা সমূহ",
+              }}
+            />
+
+            <Stack.Screen
+              name="pages/education/asmaul-husna"
+              options={{
+                title: "আসমাউল হুসনা",
+              }}
+            />
+
             {/* Dhikr Screens */}
             <Stack.Screen
               name="pages/darood"
@@ -346,6 +360,7 @@ export default function RootLayout() {
                 headerShown: false,
               }}
             />
+            
           </Stack>
         </FontSizeProvider>
       </View>
